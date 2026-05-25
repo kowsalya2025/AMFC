@@ -310,6 +310,7 @@ def loan_detail(request, pk):
     loan    = get_object_or_404(LoanApplication, pk=pk, customer=profile)
     emi_schedule = loan.emi_schedule.all()
     transactions = loan.transactions.all()
+    
 
     return render(request, 'finance_app/loan_detail.html', {
         'loan': loan,

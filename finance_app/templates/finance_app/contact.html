@@ -1,5 +1,19 @@
 {% extends 'finance_app/base.html' %}
 {% block title %}Contact Us{% endblock %}
+{% block extra_css %}
+<style>
+  .contact-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+  }
+  @media (max-width: 768px) {
+    .contact-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+{% endblock %}
 {% block content %}
 <div style="background: radial-gradient(circle, #2c2c2c, #3b3b3b, #212121); padding:3rem 0;color:white;text-align:center;">
   <div class="container animate-fade-up">
@@ -9,7 +23,7 @@
 </div>
 <section class="section" style="background-color: #FF7531;">
   <div class="container" style="color:#545454;">
-    <div style="display:grid;grid-template-columns:1fr 1fr; gap:2rem;">
+    <div class="contact-grid">
       <div>
         <div class="card">
           <div class="card-header"><i class="fas fa-envelope"></i> Send a Message</div>
