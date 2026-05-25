@@ -1,0 +1,270 @@
+{% extends 'finance_app/base.html' %}
+{% load static %}
+{% block title %}{{ product.name }} Details{% endblock %}
+
+{% block extra_css %}
+<style>
+.detail-hero {
+  position: relative;
+  background: var(--navy);
+  color: white;
+  padding: 4rem 0;
+  overflow: hidden;
+}
+.detail-hero-content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 3rem;
+}
+.detail-hero-text {
+  flex: 1;
+  min-width: 300px;
+}
+.detail-hero-text h1 {
+  font-size: 2.8rem;
+  margin-bottom: 1rem;
+  color: white;
+}
+.detail-hero-text p {
+  font-size: 1.1rem;
+  color: rgba(255,255,255,0.8);
+  margin-bottom: 2rem;
+  max-width: 600px;
+}
+.detail-hero-image {
+  flex: 1;
+  min-width: 300px;
+  max-width: 500px;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+.detail-banner-img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.key-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+  margin-top: -2rem;
+  position: relative;
+  z-index: 10;
+}
+.stat-card {
+  background: white;
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  box-shadow: var(--shadow-lg);
+  border-top: 4px solid var(--gold);
+  text-align: center;
+}
+.stat-card i {
+  font-size: 1.8rem;
+  color: var(--teal);
+  margin-bottom: 0.5rem;
+}
+.stat-value {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--navy);
+  margin-bottom: 0.3rem;
+}
+.stat-label {
+  font-size: 0.85rem;
+  color: var(--text-light);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.detail-section {
+  padding: 4rem 0;
+}
+.content-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 3rem;
+}
+
+.info-block {
+  background: white;
+  border-radius: var(--radius-lg);
+  padding: 2rem;
+  box-shadow: var(--shadow);
+  margin-bottom: 2rem;
+}
+.info-block h3 {
+  color: var(--navy);
+  border-bottom: 2px solid rgba(201,168,76,0.2);
+  padding-bottom: 0.8rem;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.info-block h3 i {
+  color: var(--gold);
+}
+.info-list {
+  list-style: none;
+  padding: 0;
+}
+.info-list li {
+  padding: 0.8rem 0;
+  border-bottom: 1px dashed #e2e8f0;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+.info-list li:last-child {
+  border-bottom: none;
+}
+.info-list li i {
+  color: var(--teal);
+  margin-top: 4px;
+}
+
+.action-card {
+  background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+  border-radius: var(--radius-lg);
+  padding: 2rem;
+  text-align: center;
+  position: sticky;
+  top: 100px;
+}
+.action-card h3 {
+  color: var(--navy);
+  margin-bottom: 1rem;
+}
+.action-card p {
+  color: var(--text-mid);
+  font-size: 0.95rem;
+  margin-bottom: 2rem;
+}
+
+@media (max-width: 768px) {
+  .content-grid {
+    grid-template-columns: 1fr;
+  }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="detail-hero">
+  <div class="container detail-hero-content animate-fade-up">
+    <div class="detail-hero-text">
+      <h1>{{ product.name }}</h1>
+      <p>{{ product.description }}</p>
+      <a href="{% url 'apply_loan_product' product.pk %}" class="btn btn-primary btn-lg">
+        <i class="fas fa-paper-plane"></i> Apply for this Loan
+      </a>
+    </div>
+    <div class="detail-hero-image">
+      {% if product.loan_type == 'GOLD' %}
+        <img src="{% static 'images/goldchain.png' %}" alt="{{ product.name }}" class="detail-banner-img">
+      {% elif product.loan_type == 'PERSONAL' %}
+        <img src="{% static 'images/personal.jpg' %}" alt="{{ product.name }}" class="detail-banner-img">
+      {% elif product.loan_type == 'HOME' %}
+        <img src="{% static 'images/home.jpeg' %}" alt="{{ product.name }}" class="detail-banner-img">
+      {% elif product.loan_type == 'BUSINESS' %}
+        <img src="{% static 'images/bussiness.png' %}" alt="{{ product.name }}" class="detail-banner-img">
+      {% elif product.loan_type == 'VEHICLE' %}
+        <img src="{% static 'images/vehicle.jpg' %}" alt="{{ product.name }}" class="detail-banner-img">
+      {% elif product.loan_type == 'EDUCATION' %}
+        <img src="{% static 'images/education.jpg' %}" alt="{{ product.name }}" class="detail-banner-img">
+      {% elif product.loan_type == 'MICRO' %}
+        <img src="{% static 'images/family.png' %}" alt="{{ product.name }}" class="detail-banner-img">
+      {% else %}
+        <img src="{% static 'images/amfc.jpeg' %}" alt="{{ product.name }}" class="detail-banner-img">
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <!-- Key Stats -->
+  <div class="key-stats animate-fade-up animate-delay-1">
+    <div class="stat-card">
+      <i class="fas fa-percent"></i>
+      <div class="stat-value">{{ product.base_interest_rate }}%</div>
+      <div class="stat-label">Starting Interest (p.a.)</div>
+    </div>
+    <div class="stat-card">
+      <i class="fas fa-wallet"></i>
+      <div class="stat-value">₹{{ product.max_amount|floatformat:0 }}</div>
+      <div class="stat-label">Max Loan Amount</div>
+    </div>
+    <div class="stat-card">
+      <i class="fas fa-calendar-alt"></i>
+      <div class="stat-value">{{ product.max_tenure_months }} Mo</div>
+      <div class="stat-label">Max Tenure</div>
+    </div>
+    <div class="stat-card">
+      <i class="fas fa-bolt"></i>
+      <div class="stat-value">{{ product.processing_fee_pct }}%</div>
+      <div class="stat-label">Processing Fee</div>
+    </div>
+  </div>
+
+  <!-- Content Section -->
+  <div class="detail-section animate-fade-up animate-delay-2">
+    <div class="content-grid">
+      
+      <!-- Main Info -->
+      <div>
+        <div class="info-block">
+          <h3><i class="fas fa-star"></i> Key Features</h3>
+          <ul class="info-list">
+            {% for feature in product.features %}
+            <li><i class="fas fa-check-circle"></i> <span>{{ feature }}</span></li>
+            {% empty %}
+            <li><i class="fas fa-info-circle"></i> <span>Contact branch for specific features.</span></li>
+            {% endfor %}
+          </ul>
+        </div>
+        
+        <div class="info-block">
+          <h3><i class="fas fa-user-check"></i> Eligibility Criteria</h3>
+          <p style="color:var(--text-mid); line-height: 1.6;">{{ product.eligibility|linebreaksbr }}</p>
+          <div style="margin-top: 1.5rem; padding: 1rem; background: rgba(27,107,123,0.05); border-radius: var(--radius); border-left: 4px solid var(--teal);">
+            <strong>Note:</strong> Final approval is subject to our credit policy and successful KYC verification.
+          </div>
+        </div>
+
+        <div class="info-block">
+          <h3><i class="fas fa-file-alt"></i> Documents Required</h3>
+          <ul class="info-list">
+            {% for doc in product.documents_required %}
+            <li><i class="fas fa-file-signature"></i> <span>{{ doc }}</span></li>
+            {% empty %}
+            <li><i class="fas fa-file-signature"></i> <span>Aadhaar Card, PAN Card, and latest Photograph.</span></li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+
+      <!-- Sidebar -->
+      <div>
+        <div class="action-card">
+          <h3>Ready to Proceed?</h3>
+          <p>Get instant approval and quick disbursal straight to your bank account with minimal documentation.</p>
+          <a href="{% url 'apply_loan_product' product.pk %}" class="btn btn-navy" style="width:100%; justify-content:center; margin-bottom: 1rem;">
+            Apply Now
+          </a>
+          <a href="{% url 'emi_calculator' %}?principal={{ product.min_amount }}&rate={{ product.base_interest_rate }}&tenure={{ product.min_tenure_months }}" class="btn btn-outline" style="width:100%; justify-content:center;">
+            Calculate EMI
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}

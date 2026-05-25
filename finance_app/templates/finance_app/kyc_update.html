@@ -1,0 +1,149 @@
+{% extends 'finance_app/base.html' %}
+{% block title %}KYC Verification{% endblock %}
+{% block content %}
+
+<div class="container" style="max-width:650px; padding:2rem 1.5rem;">
+  <div class="card">
+    <div class="card-header">
+      <h3><i class="fas fa-id-card"></i> KYC Verification</h3>
+    </div>
+    <div class="card-body">
+
+      {% if profile.kyc_status == 'PENDING' %}
+      <div class="alert alert-warning">
+        <i class="fas fa-clock"></i> Your KYC is under review. We'll update you within 24–48 hours.
+      </div>
+      {% elif profile.kyc_status == 'REJECTED' %}
+      <div class="alert alert-danger">
+        <i class="fas fa-times-circle"></i> Your KYC was rejected. Please resubmit correct details.
+      </div>
+      {% endif %}
+
+      <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <h4 style="margin:1rem 0 0.5rem; color:var(--navy);">
+          <i class="fas fa-info-circle"></i> Basic Details
+        </h4>
+        <hr style="margin-bottom:1rem;">
+
+        <div class="form-group">
+          <label class="form-label">Mobile Number *</label>
+          <input type="text" name="phone" class="form-control"
+                 value="{{ profile.phone }}" required maxlength="15"
+                 placeholder="10-digit mobile number">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Aadhaar Number *</label>
+          <input type="text" name="aadhaar_number" class="form-control"
+                 value="{{ profile.aadhaar_number }}"
+                 maxlength="12" placeholder="12-digit Aadhaar number" required>
+          <span class="form-hint">Enter your 12-digit Aadhaar number (numbers only)</span>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">PAN Number *</label>
+          <input type="text" name="pan_number" class="form-control"
+                 value="{{ profile.pan_number }}"
+                 maxlength="10" placeholder="e.g. ABCDE1234F"
+                 style="text-transform:uppercase;" required>
+          <span class="form-hint">Enter your 10-character PAN card number</span>
+        </div>
+
+        <h4 style="margin:1.5rem 0 0.5rem; color:var(--navy);">
+          <i class="fas fa-upload"></i> Upload Documents
+        </h4>
+        <hr style="margin-bottom:1rem;">
+
+        <!-- Aadhaar Upload -->
+        <div class="form-group">
+          <label class="form-label">Aadhaar Card (Front) *</label>
+          <input type="file" name="aadhaar_front" class="form-control"
+                 accept="image/*,.pdf">
+          <span class="form-hint">Upload front side of Aadhaar card (JPG, PNG or PDF)</span>
+          {% for doc in profile.documents.all %}
+            {% if doc.document_type == 'AADHAAR' %}
+            <span style="font-size:0.8rem; color:var(--success);">
+              <i class="fas fa-check"></i> Previously uploaded —
+              <span class="badge {% if doc.status == 'APPROVED' %}badge-active{% elif doc.status == 'REJECTED' %}badge-rejected{% else %}badge-pending{% endif %}">
+                {{ doc.status }}
+              </span>
+            </span>
+            {% endif %}
+          {% endfor %}
+        </div>
+
+        <!-- PAN Upload -->
+        <div class="form-group">
+          <label class="form-label">PAN Card *</label>
+          <input type="file" name="pan_card" class="form-control"
+                 accept="image/*,.pdf">
+          <span class="form-hint">Upload your PAN card (JPG, PNG or PDF)</span>
+          {% for doc in profile.documents.all %}
+            {% if doc.document_type == 'PAN' %}
+            <span style="font-size:0.8rem; color:var(--success);">
+              <i class="fas fa-check"></i> Previously uploaded —
+              <span class="badge {% if doc.status == 'APPROVED' %}badge-active{% elif doc.status == 'REJECTED' %}badge-rejected{% else %}badge-pending{% endif %}">
+                {{ doc.status }}
+              </span>
+            </span>
+            {% endif %}
+          {% endfor %}
+        </div>
+
+        <!-- Photo Upload -->
+        <div class="form-group">
+          <label class="form-label">Passport Photo</label>
+          <input type="file" name="photo" class="form-control"
+                 accept="image/*">
+          <span class="form-hint">Upload a recent passport-size photograph</span>
+          {% for doc in profile.documents.all %}
+            {% if doc.document_type == 'PHOTO' %}
+            <span style="font-size:0.8rem; color:var(--success);">
+              <i class="fas fa-check"></i> Previously uploaded —
+              <span class="badge {% if doc.status == 'APPROVED' %}badge-active{% elif doc.status == 'REJECTED' %}badge-rejected{% else %}badge-pending{% endif %}">
+                {{ doc.status }}
+              </span>
+            </span>
+            {% endif %}
+          {% endfor %}
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width:100%;">
+          <i class="fas fa-paper-plane"></i> Submit KYC for Verification
+        </button>
+
+      </form>
+    </div>
+  </div>
+
+  <!-- Process Steps -->
+  <div class="card mt-3">
+    <div class="card-body">
+      <h4 style="margin-bottom:1rem; color:var(--navy);">KYC Process</h4>
+      <div style="display:flex; flex-direction:column; gap:1rem;">
+        <div style="display:flex; gap:1rem; align-items:flex-start;">
+          <div style="width:32px;height:32px;background:var(--gold);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--navy);flex-shrink:0;">1</div>
+          <div><strong>Submit Details</strong><br><span style="color:var(--text-light);font-size:0.9rem;">Enter Aadhaar, PAN, mobile and upload documents</span></div>
+        </div>
+        <div style="display:flex; gap:1rem; align-items:flex-start;">
+          <div style="width:32px;height:32px;background:var(--gold);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--navy);flex-shrink:0;">2</div>
+          <div><strong>Verification</strong><br><span style="color:var(--text-light);font-size:0.9rem;">Our team verifies your documents within 24–48 hours</span></div>
+        </div>
+        <div style="display:flex; gap:1rem; align-items:flex-start;">
+          <div style="width:32px;height:32px;background:var(--gold);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--navy);flex-shrink:0;">3</div>
+          <div><strong>Apply for Loans</strong><br><span style="color:var(--text-light);font-size:0.9rem;">Once verified, apply for any loan product instantly</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mt-3">
+    <a href="{% url 'profile' %}" class="btn btn-navy">
+      <i class="fas fa-arrow-left"></i> Back to Profile
+    </a>
+  </div>
+
+</div>
+{% endblock %}

@@ -1,0 +1,500 @@
+{% extends 'finance_app/base.html' %}
+{% block title %}Dashboard{% endblock %}
+
+{% block extra_css %}
+<style>
+.dashboard-layout { display: grid; grid-template-columns: 260px 1fr; gap: 0; min-height: calc(100vh - 70px); }
+
+/* ── SIDEBAR ── */
+.sidebar {
+  background: #545454;
+  padding: 1.5rem 0;
+  position: sticky; top: 70px; height: calc(100vh - 70px);
+  overflow-y: auto;
+}
+.sidebar-user {
+  padding: 0 1.5rem 1.5rem;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  margin-bottom: 1rem;
+}
+.user-avatar {
+  width: 52px; height: 52px;
+  background: linear-gradient(135deg, var(--gold), var(--teal));
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.3rem; color: white; font-weight: 900;
+  margin-bottom: 0.7rem;
+}
+.user-name { color: white; font-weight: 700; }
+.user-id   { color: rgba(255,255,255,0.4); font-size: 0.78rem; }
+
+.sidebar-nav a {
+  display: flex; align-items: center; gap: 10px;
+  padding: 0.75rem 1.5rem;
+  color: rgba(255,255,255,0.65);
+  text-decoration: none; font-size: 0.9rem;
+  transition: var(--transition);
+  border-left: 3px solid transparent;
+}
+.sidebar-nav a:hover,
+.sidebar-nav a.active {
+  color: var(--gold);
+  background: rgba(201,168,76,0.10);
+  border-left-color: var(--gold);
+}
+.sidebar-nav a i { width: 18px; flex-shrink: 0; }
+
+.sidebar-divider {
+  border: none;
+  border-top: 1px solid rgba(255,255,255,0.08);
+  margin: 0.5rem 0;
+}
+.sidebar-section-title {
+  padding: 0.5rem 1.5rem;
+  color: rgba(255,255,255,0.3);
+  font-size: 0.7rem;
+  text-transform: uppercase; letter-spacing: 1.5px;
+}
+
+/* ── MAIN ── */
+.dashboard-main { padding: 2rem; background: var(--cream); overflow-y: auto; }
+
+.welcome-bar {
+  background: linear-gradient(135deg, #0D1B2A, #1a3a5c);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem 2rem;
+  color: white;
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 1.5rem;
+}
+.welcome-bar h2 { color: white; font-size: 1.4rem; }
+.welcome-bar p  { color: rgba(255,255,255,0.6); font-size: 0.88rem; margin-top: 4px; }
+
+.stats-row {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 1rem; margin-bottom: 1.5rem;
+}
+
+/* ── EMI ITEMS ── */
+.emi-item {
+  display: flex; align-items: center; gap: 1rem;
+  padding: 0.9rem; border-radius: var(--radius);
+  border-left: 4px solid transparent;
+  transition: var(--transition);
+  margin-bottom: 0.5rem;
+}
+.emi-item:hover   { background: var(--cream); }
+.emi-item.overdue { border-left-color: var(--danger); background: rgba(185,28,28,0.05); }
+.emi-item.upcoming { border-left-color: var(--gold); }
+
+.emi-date {
+  width: 48px; height: 48px;
+  background: #0D1B2A; color: var(--gold);
+  border-radius: 10px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  font-size: 0.7rem; flex-shrink: 0;
+}
+.emi-date .day { font-size: 1.1rem; font-weight: 900; line-height: 1; }
+
+/* Credit Score Donut */
+.credit-donut {
+  width: 120px; height: 120px; border-radius: 50%;
+  background: conic-gradient(var(--gold) 0% 85%, #e2e8f0 85% 100%);
+  display: flex; align-items: center; justify-content: center;
+  position: relative; margin: 0 auto;
+}
+.credit-donut::after {
+  content: '';
+  width: 90px; height: 90px;
+  background: var(--white);
+  border-radius: 50%; position: absolute;
+}
+.credit-score-val {
+  position: relative; z-index: 1;
+  font-weight: 900; font-size: 1.2rem;
+  color: #0D1B2A;
+  font-family: 'Playfair Display', serif;
+}
+
+/* Activity feed */
+.activity-item {
+  display: flex; gap: 1rem; align-items: flex-start;
+  padding: 0.8rem 0; border-bottom: 1px solid rgba(0,0,0,0.06);
+}
+.activity-dot {
+  width: 10px; height: 10px; border-radius: 50%;
+  margin-top: 5px; flex-shrink: 0;
+}
+.activity-dot.success { background: var(--success); }
+.activity-dot.gold    { background: var(--gold); }
+.activity-dot.teal    { background: var(--teal); }
+
+/* Quick action buttons: override btn-navy to use hardcoded colour */
+.btn-navy-hard {
+  background: #0D1B2A !important;
+  color: #ffffff !important;
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 0.7rem 1.5rem;
+  border: none; border-radius: var(--radius);
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 600; font-size: 0.95rem;
+  cursor: pointer; text-decoration: none;
+  transition: var(--transition);
+  justify-content: center;
+}
+.btn-navy-hard:hover { background: #1a3a5c !important; transform: translateY(-2px); }
+
+@media (max-width: 1000px) {
+  .dashboard-layout  { grid-template-columns: 1fr; }
+  .sidebar           { position: static; height: auto; }
+  .stats-row         { grid-template-columns: repeat(2,1fr); }
+}
+@media (max-width: 600px) {
+  .stats-row         { grid-template-columns: 1fr 1fr; }
+  .dashboard-main    { padding: 1rem; }
+  .welcome-bar       { flex-direction: column; gap: 1rem; align-items: flex-start; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-layout">
+
+  <!-- ── SIDEBAR ── -->
+  <aside class="sidebar">
+    <div class="sidebar-user">
+      <div class="user-avatar">{{ user.first_name.0|upper }}{{ user.last_name.0|upper }}</div>
+      <div class="user-name">{{ user.get_full_name }}</div>
+      <div class="user-id">ID: {{ profile.customer_id|stringformat:"s"|slice:":8"|upper }}</div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="sidebar-section-title">Main</div>
+      <a href="{% url 'dashboard' %}" class="active">
+        <i class="fas fa-tachometer-alt"></i> Dashboard
+      </a>
+      <a href="{% url 'profile' %}">
+        <i class="fas fa-user"></i> My Profile
+      </a>
+      <a href="{% url 'notifications' %}">
+        <i class="fas fa-bell"></i> Notifications
+        {% if notifications %}
+          <span class="badge badge-pending" style="margin-left:auto;">{{ notifications|length }}</span>
+        {% endif %}
+      </a>
+
+      <hr class="sidebar-divider">
+      <div class="sidebar-section-title">Loans</div>
+      <a href="{% url 'my_loans' %}">
+        <i class="fas fa-file-invoice-dollar"></i> My Loans
+      </a>
+      <a href="{% url 'apply_loan' %}">
+        <i class="fas fa-plus-circle"></i> Apply for Loan
+      </a>
+      <a href="{% url 'gold_loan' %}">
+        <i class="fas fa-ring"></i> Gold Loan
+      </a>
+
+      <hr class="sidebar-divider">
+      <div class="sidebar-section-title">Tools</div>
+      <a href="{% url 'emi_calculator' %}">
+        <i class="fas fa-calculator"></i> EMI Calculator
+      </a>
+      <a href="{% url 'loan_products' %}">
+        <i class="fas fa-th-large"></i> Loan Products
+      </a>
+
+      <hr class="sidebar-divider">
+      <a href="{% url 'logout' %}" style="color: rgba(255,100,100,0.8) !important;">
+        <i class="fas fa-sign-out-alt"></i> Logout
+      </a>
+    </nav>
+  </aside>
+
+  <!-- ── MAIN CONTENT ── -->
+  <main class="dashboard-main">
+
+    <!-- Welcome bar -->
+    <div class="welcome-bar animate-fade-up">
+      <div>
+        <h2>Good Day, {{ user.first_name }}! 👋</h2>
+        <p>{{ profile.get_kyc_status_display }} KYC | {{ profile.city }}, {{ profile.state }}</p>
+      </div>
+      <div style="display:flex;gap:0.8rem;">
+        <a href="{% url 'apply_loan' %}" class="btn btn-primary">
+          <i class="fas fa-paper-plane"></i> Apply Now
+        </a>
+      </div>
+    </div>
+
+    <!-- KYC alert -->
+    {% if profile.kyc_status != 'VERIFIED' %}
+    <div class="alert alert-warning">
+      <i class="fas fa-exclamation-triangle"></i>
+      <span>
+        <strong>KYC Pending:</strong> Complete your KYC verification to apply for loans.
+        <a href="{% url 'profile' %}" style="color:inherit;font-weight:700;">Complete Now →</a>
+      </span>
+    </div>
+    {% endif %}
+
+    <!-- STATS ROW -->
+    <div class="stats-row">
+      <div class="stat-card gold animate-fade-up">
+        <div class="stat-icon gold"><i class="fas fa-file-invoice"></i></div>
+        <div>
+          <div class="stat-value">{{ profile.total_loans }}</div>
+          <div class="stat-label">Total Loans</div>
+        </div>
+      </div>
+      <div class="stat-card teal animate-fade-up animate-delay-1">
+        <div class="stat-icon teal"><i class="fas fa-check-circle"></i></div>
+        <div>
+          <div class="stat-value">{{ profile.active_loans }}</div>
+          <div class="stat-label">Active Loans</div>
+        </div>
+      </div>
+      <div class="stat-card navy animate-fade-up animate-delay-2">
+        <div class="stat-icon navy" style="background:rgba(13,27,42,0.08);color:#0D1B2A;">
+          <i class="fas fa-rupee-sign"></i>
+        </div>
+        <div>
+          <div class="stat-value" style="color:#0D1B2A;">₹{{ total_outstanding|floatformat:0 }}</div>
+          <div class="stat-label">Outstanding</div>
+        </div>
+      </div>
+      <div class="stat-card green animate-fade-up animate-delay-3">
+        <div class="stat-icon green"><i class="fas fa-calendar-alt"></i></div>
+        <div>
+          <div class="stat-value">{{ upcoming_emis|length }}</div>
+          <div class="stat-label">Upcoming EMIs</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MAIN GRID -->
+    <div style="display:grid;grid-template-columns:2fr 1fr;gap:1.5rem;">
+
+      <!-- LEFT COLUMN -->
+      <div>
+
+        <!-- Recent Loans -->
+        <div class="card mb-3">
+          <div class="card-header" style="display:flex;justify-content:space-between;align-items:center;">
+            <span><i class="fas fa-list"></i> My Loans</span>
+            <a href="{% url 'my_loans' %}" style="color:var(--gold);font-size:0.85rem;">View All →</a>
+          </div>
+          <div style="overflow-x:auto;">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Ref No.</th><th>Product</th><th>Amount</th><th>Status</th><th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for loan in loans %}
+                <tr>
+                  <td style="font-weight:600;color:var(--teal);">{{ loan.reference_number }}</td>
+                  <td>{{ loan.product.name }}</td>
+                  <td>₹{{ loan.requested_amount|floatformat:0 }}</td>
+                  <td><span class="badge badge-{{ loan.status|lower }}">{{ loan.get_status_display }}</span></td>
+                  <td><a href="{% url 'loan_detail' loan.pk %}" class="btn btn-teal btn-sm">View</a></td>
+                </tr>
+                {% empty %}
+                <tr>
+                  <td colspan="5" style="text-align:center;padding:2rem;color:var(--text-light);">
+                    No loans yet. <a href="{% url 'apply_loan' %}" style="color:var(--gold);">Apply Now →</a>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Upcoming EMIs -->
+        <div class="card mb-3">
+          <div class="card-header"><i class="fas fa-calendar-check"></i> Upcoming EMIs (Next 30 Days)</div>
+          <div class="card-body">
+            {% for emi in upcoming_emis %}
+            <div class="emi-item upcoming">
+              <div class="emi-date">
+                <div class="day">{{ emi.due_date|date:"d" }}</div>
+                <div>{{ emi.due_date|date:"M" }}</div>
+              </div>
+              <div style="flex:1;">
+                <div style="font-weight:600;">{{ emi.loan.reference_number }} — EMI #{{ emi.emi_number }}</div>
+                <div style="font-size:0.82rem;color:var(--text-light);">Due: {{ emi.due_date }}</div>
+              </div>
+              <div style="text-align:right;">
+                <div style="font-weight:700;color:#0D1B2A;">₹{{ emi.emi_amount|floatformat:0 }}</div>
+                <a href="{% url 'pay_emi' emi.pk %}" class="btn btn-primary btn-sm mt-1">Pay Now</a>
+              </div>
+            </div>
+            {% empty %}
+            <div style="text-align:center;padding:1.5rem;color:var(--text-light);">
+              <i class="fas fa-check-circle" style="font-size:2rem;color:var(--success);display:block;margin-bottom:0.5rem;"></i>
+              No upcoming EMIs! You're all caught up.
+            </div>
+            {% endfor %}
+
+            {% if overdue_emis %}
+            <div style="border-top:1px solid #f0ebe0;margin-top:1rem;padding-top:1rem;">
+              <div style="color:var(--danger);font-weight:700;margin-bottom:0.5rem;">
+                <i class="fas fa-exclamation-circle"></i> Overdue EMIs
+              </div>
+              {% for emi in overdue_emis %}
+              <div class="emi-item overdue">
+                <div class="emi-date" style="background:var(--danger);">
+                  <div class="day">{{ emi.due_date|date:"d" }}</div>
+                  <div>{{ emi.due_date|date:"M" }}</div>
+                </div>
+                <div style="flex:1;">
+                  <div style="font-weight:600;">{{ emi.loan.reference_number }}</div>
+                  <div style="font-size:0.82rem;color:var(--danger);">Overdue since {{ emi.due_date }}</div>
+                </div>
+                <div>
+                  <div style="font-weight:700;">₹{{ emi.emi_amount|floatformat:0 }}</div>
+                  <a href="{% url 'pay_emi' emi.pk %}" class="btn btn-sm" style="background:var(--danger);color:white;">Pay Now</a>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Recent Transactions -->
+        <div class="card">
+          <div class="card-header"><i class="fas fa-exchange-alt"></i> Recent Transactions</div>
+          <div style="overflow-x:auto;">
+            <table class="table">
+              <thead>
+                <tr><th>Txn Type</th><th>Amount</th><th>Mode</th><th>Status</th><th>Date</th></tr>
+              </thead>
+              <tbody>
+                {% for txn in recent_txns %}
+                <tr>
+                  <td>{{ txn.get_transaction_type_display }}</td>
+                  <td style="font-weight:700;">₹{{ txn.amount|floatformat:0 }}</td>
+                  <td>{{ txn.get_payment_mode_display }}</td>
+                  <td>
+                    {% if txn.status == 'SUCCESS' %}
+                      <span class="badge badge-active">✓ {{ txn.status }}</span>
+                    {% elif txn.status == 'FAILED' %}
+                      <span class="badge badge-rejected">{{ txn.status }}</span>
+                    {% else %}
+                      <span class="badge badge-pending">{{ txn.status }}</span>
+                    {% endif %}
+                  </td>
+                  <td style="font-size:0.82rem;color:var(--text-light);">{{ txn.processed_at|date:"d M Y" }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                  <td colspan="5" style="text-align:center;color:var(--text-light);padding:1.5rem;">No transactions yet</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div><!-- /LEFT COLUMN -->
+
+      <!-- RIGHT COLUMN -->
+      <div>
+
+        <!-- Credit Score -->
+        <div class="card mb-3">
+          <div class="card-header"><i class="fas fa-star"></i> Credit Score</div>
+          <div class="card-body" style="text-align:center;">
+            {% if credit_score %}
+            <div class="credit-donut">
+              <span class="credit-score-val">{{ credit_score.score }}</span>
+            </div>
+            <div style="font-weight:700;color:#0D1B2A;margin-top:0.8rem;font-size:1.1rem;">{{ credit_score.rating }}</div>
+            <div style="font-size:0.82rem;color:var(--text-light);">{{ credit_score.bureau }} | {{ credit_score.fetched_at|date:"M Y" }}</div>
+            <div class="progress mt-2">
+              <div class="progress-bar" style="width:{{ credit_score.score|floatformat:0 }}%;"></div>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:0.75rem;color:var(--text-light);margin-top:4px;">
+              <span>300 Poor</span><span>900 Excellent</span>
+            </div>
+            {% else %}
+            <div style="padding:1.5rem;color:var(--text-light);">
+              <i class="fas fa-star-half-alt" style="font-size:2.5rem;color:#ddd;display:block;margin-bottom:0.5rem;"></i>
+              Credit score not fetched yet.
+            </div>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- KYC Status -->
+        <div class="card mb-3">
+          <div class="card-header"><i class="fas fa-shield-alt"></i> KYC Status</div>
+          <div class="card-body">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;">
+              <span style="color:#2d3748;font-weight:600;">Overall Status</span>
+              <span class="badge badge-{% if profile.kyc_status == 'VERIFIED' %}active{% elif profile.kyc_status == 'REJECTED' %}rejected{% else %}pending{% endif %}">
+                {{ profile.get_kyc_status_display }}
+              </span>
+            </div>
+            {% for doc_type in doc_types %}
+            <div style="display:flex;justify-content:space-between;padding:0.4rem 0;border-bottom:1px solid #f5f0e8;font-size:0.88rem;color:#4a5568;">
+              <span>{{ doc_type }}</span>
+              <span style="color:{% if profile.kyc_status == 'VERIFIED' %}var(--success){% else %}var(--gold){% endif %};font-weight:600;">
+                {% if profile.kyc_status == 'VERIFIED' %}✓ Verified{% else %}⏳ Pending{% endif %}
+              </span>
+            </div>
+            {% endfor %}
+            {% if profile.kyc_status != 'VERIFIED' %}
+            <a href="{% url 'profile' %}" class="btn btn-primary" style="width:100%;justify-content:center;margin-top:1rem;">
+              Complete KYC
+            </a>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="card mb-3">
+          <div class="card-header"><i class="fas fa-bolt"></i> Quick Actions</div>
+          <div class="card-body" style="display:grid;gap:0.7rem;">
+            <a href="{% url 'apply_loan' %}" class="btn btn-primary" style="justify-content:center;">
+              <i class="fas fa-plus"></i> Apply for Loan
+            </a>
+            <a href="{% url 'gold_loan' %}" class="btn-navy-hard">
+              <i class="fas fa-ring"></i> Gold Loan
+            </a>
+            <a href="{% url 'emi_calculator' %}" class="btn btn-teal" style="justify-content:center;">
+              <i class="fas fa-calculator"></i> EMI Calculator
+            </a>
+            <a href="{% url 'profile' %}" class="btn btn-outline" style="justify-content:center;">
+              <i class="fas fa-user-edit"></i> Edit Profile
+            </a>
+          </div>
+        </div>
+
+        <!-- Notifications -->
+        {% if notifications %}
+        <div class="card">
+          <div class="card-header"><i class="fas fa-bell"></i> Notifications</div>
+          <div class="card-body" style="padding:0.5rem 1rem;">
+            {% for notif in notifications %}
+            <div class="activity-item">
+              <div class="activity-dot {% if 'APPROVAL' in notif.notification_type %}success{% elif 'REMINDER' in notif.notification_type %}gold{% else %}teal{% endif %}"></div>
+              <div>
+                <div style="font-weight:600;font-size:0.88rem;color:#2d3748;">{{ notif.title }}</div>
+                <div style="font-size:0.8rem;color:var(--text-light);">{{ notif.message|truncatechars:60 }}</div>
+                <div style="font-size:0.75rem;color:var(--text-light);">{{ notif.created_at|timesince }} ago</div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+
+      </div><!-- /RIGHT COLUMN -->
+    </div>
+  </main>
+</div>
+{% endblock %}

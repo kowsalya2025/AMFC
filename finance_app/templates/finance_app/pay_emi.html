@@ -1,0 +1,64 @@
+{% extends 'finance_app/base.html' %}
+{% block title %}Pay EMI{% endblock %}
+{% block content %}
+<div style="background:linear-gradient(135deg,var(--navy),var(--teal));padding:2.5rem 0;color:white;">
+  <div class="container"><h2 style="color:white;">Pay EMI #{{ emi.emi_number }}</h2>
+  <p style="color:rgba(255,255,255,0.7);">{{ emi.loan.reference_number }} — {{ emi.loan.product.name }}</p>
+  </div>
+</div>
+<section class="section">
+  <div class="container" style="max-width:700px;">
+    {% if emi.is_overdue %}
+    <div class="alert alert-danger"><i class="fas fa-exclamation-circle"></i> This EMI is overdue since {{ emi.due_date }}. Late charges may apply.</div>
+    {% endif %}
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;">
+      <div class="card">
+        <div class="card-header"><i class="fas fa-file-invoice"></i> EMI Details</div>
+        <div class="card-body">
+          <div style="text-align:center;padding:1rem;">
+            <div style="color:var(--text-light);font-size:0.85rem;">Amount Due</div>
+            <div style="font-size:3rem;font-weight:900;font-family:'Playfair Display',serif;color:var(--gold);">₹{{ emi.emi_amount|floatformat:0 }}</div>
+            <div style="color:var(--text-light);font-size:0.85rem;margin-top:4px;">Due Date: {{ emi.due_date|date:"d M Y" }}</div>
+          </div>
+          <div style="border-top:1px solid #f0ebe0;padding-top:1rem;">
+            <div style="display:flex;justify-content:space-between;font-size:0.88rem;padding:0.3rem 0;"><span style="color:var(--text-light);">Principal</span><span>₹{{ emi.principal_amt|floatformat:0 }}</span></div>
+            <div style="display:flex;justify-content:space-between;font-size:0.88rem;padding:0.3rem 0;"><span style="color:var(--text-light);">Interest</span><span>₹{{ emi.interest_amt|floatformat:0 }}</span></div>
+            <div style="display:flex;justify-content:space-between;font-size:0.88rem;padding:0.3rem 0;"><span style="color:var(--text-light);">Balance After</span><span style="color:var(--teal);font-weight:700;">₹{{ emi.outstanding_bal|floatformat:0 }}</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><i class="fas fa-credit-card"></i> Payment Method</div>
+        <div class="card-body">
+          <form method="post">
+            {% csrf_token %}
+            <div class="form-group">
+              <label class="form-label">Payment Mode *</label>
+              <select name="payment_mode" class="form-control" required>
+                <option value="UPI">📱 UPI</option>
+                <option value="NEFT">🏦 NEFT</option>
+                <option value="RTGS">🏛️ RTGS</option>
+                <option value="CASH">💵 Cash</option>
+                <option value="CHEQUE">📝 Cheque</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Reference/UTR Number</label>
+              <input type="text" name="reference_number" class="form-control" placeholder="Transaction reference (optional)">
+            </div>
+            <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;padding:0.9rem;">
+              <i class="fas fa-lock"></i> Pay ₹{{ emi.emi_amount|floatformat:0 }} Securely
+            </button>
+            <div style="text-align:center;margin-top:0.7rem;font-size:0.78rem;color:var(--text-light);">
+              <i class="fas fa-shield-alt"></i> 256-bit SSL Encrypted
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+    <div style="margin-top:1rem;">
+      <a href="{% url 'loan_detail' emi.loan.pk %}" class="btn btn-outline">← Back to Loan</a>
+    </div>
+  </div>
+</section>
+{% endblock %}

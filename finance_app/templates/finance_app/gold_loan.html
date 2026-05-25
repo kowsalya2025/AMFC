@@ -1,0 +1,116 @@
+{% extends 'finance_app/base.html' %}
+{% load static %}
+{% block title %}Gold Loan{% endblock %}
+{% block content %}
+<div style="
+  background: url('{% static "images/goldchain.png" %}') center/cover no-repeat;
+  padding:3rem 0;
+  text-align:center;
+  min-height: 300px;
+  display: flex;
+  align-items: center;
+">
+  <div class="container animate-fade-up" style="width:100%;">
+  <h1 style="color:white; text-shadow: 0 2px 12px rgba(0,0,0,0.9), 0 0 30px rgba(0,0,0,0.8);">Gold Loan</h1>
+  <p style="
+    color: white;
+    font-size: 1.1rem;
+    font-weight: 600;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.9), 0 0 20px rgba(0,0,0,0.8);
+    background: rgba(0,0,0,0.4);
+    display: inline-block;
+    padding: 0.4rem 1.2rem;
+    border-radius: 8px;
+  ">
+    Get instant loans against your gold. Safe, fast, and transparent.
+  </p>
+    <!-- <div style="display:flex;justify-content:center;gap:2rem;margin-top:1.5rem;flex-wrap:wrap;">
+      <div style="text-align:center;">
+        <div style="font-size:1.5rem;font-weight:900;color:white;">7.5%</div>
+        <div style="color:rgba(255,255,255,0.8);font-size:0.82rem;">Interest p.a.</div>
+      </div>
+      <div style="text-align:center;">
+        <div style="font-size:1.5rem;font-weight:900;color:white;">30 Min</div>
+        <div style="color:rgba(255,255,255,0.8);font-size:0.82rem;">Disbursement</div>
+      </div>
+      <div style="text-align:center;">
+        <div style="font-size:1.5rem;font-weight:900;color:white;">75%</div>
+        <div style="color:rgba(255,255,255,0.8);font-size:0.82rem;">of Gold Value</div>
+      </div>
+    </div> -->
+  </div>
+</div>
+
+
+<section class="section">
+  <div class="container" style="max-width:800px;">
+    <div class="card">
+      <div class="card-header" style="background:linear-gradient(135deg,#8B6914,var(--gold));color:var(--navy);">
+        <i class="fas fa-ring"></i> Gold Pledge Application
+      </div>
+      <div class="card-body">
+        <div class="alert alert-info"><i class="fas fa-info-circle"></i> Our expert appraiser will verify your gold at the branch. Loan amount = 75% of market value (RBI norm).</div>
+        <form method="post">
+          {% csrf_token %}
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+            <div class="form-group" style="grid-column:1/-1;">
+              <label class="form-label">Description of Gold Items *</label>
+              <input type="text" name="description" class="form-control" required placeholder="e.g., 2 bangles + 1 necklace + earrings">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Gold Purity (Karats) *</label>
+              <select name="gold_purity" class="form-control" required>
+                <option value="22">22K (Most Common)</option>
+                <option value="18">18K</option>
+                <option value="24">24K (Pure)</option>
+                <option value="14">14K</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Gross Weight (grams) *</label>
+              <input type="number" name="gross_weight_g" class="form-control" step="0.001" required placeholder="50.000">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Net Weight (grams) *</label>
+              <input type="number" name="net_weight_g" class="form-control" step="0.001" required placeholder="45.500" id="netWt">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Gold Rate per gram (₹) *</label>
+              <input type="number" name="gold_rate_per_g" class="form-control" required placeholder="6000" id="goldRate" oninput="calcGold()">
+              <div class="form-hint">Today's 22K rate ≈ ₹5,500-6,200/g</div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Market Value (₹)</label>
+              <input type="number" name="market_value" class="form-control" id="marketVal" readonly placeholder="Auto-calculated">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Pledge Value (₹) — Loan Amount</label>
+              <input type="number" name="pledge_value" class="form-control" id="pledgeVal" readonly placeholder="75% of market value">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Appraised By *</label>
+              <input type="text" name="appraised_by" class="form-control" required placeholder="Branch Appraiser Name">
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary btn-lg" style="width:100%;justify-content:center;margin-top:1rem;">
+            <i class="fas fa-ring"></i> Apply for Gold Loan
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+{% block extra_js %}
+<script>
+document.getElementById('netWt').addEventListener('input', calcGold);
+function calcGold() {
+  const wt = parseFloat(document.getElementById('netWt').value) || 0;
+  const rate = parseFloat(document.getElementById('goldRate').value) || 0;
+  const market = wt * rate;
+  const pledge = market * 0.75;
+  document.getElementById('marketVal').value = Math.round(market);
+  document.getElementById('pledgeVal').value = Math.round(pledge);
+}
+</script>
+{% endblock %}

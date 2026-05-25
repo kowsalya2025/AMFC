@@ -1,0 +1,260 @@
+{% extends 'finance_app/base.html' %}
+{% block title %}My Profile{% endblock %}
+{% block content %}
+
+<div class="container" style="padding: 2rem 1.5rem;">
+
+  <!-- Header -->
+  <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:2rem;">
+    <div>
+      <h2 class="text-navy" style="color: #FF7531;">My Profile</h2>
+      <p style="color:var(--text-light);">Manage your personal information and KYC details</p>
+    </div>
+    <span class="badge {% if profile.kyc_status == 'VERIFIED' %}badge-active{% elif profile.kyc_status == 'REJECTED' %}badge-rejected{% else %}badge-pending{% endif %}" style="font-size:0.9rem; padding:6px 16px;">
+      KYC: {{ profile.kyc_status }}
+    </span>
+  </div>
+
+  <div class="grid grid-2" style="gap:2rem;">
+
+    <!-- Personal Info Card -->
+    <div class="card">
+      <div class="card-header">
+        <h3><i class="fas fa-user"></i> Personal Information</h3>
+      </div>
+      <div class="card-body">
+        <table style="width:100%; border-collapse:collapse;">
+          <tr style="border-bottom:1px solid #f0ebe0;">
+            <td style="padding:0.7rem 0; color:var(--text-light); width:45%;">Full Name</td>
+            <td style="padding:0.7rem 0; font-weight:600;">{{ profile.user.get_full_name }}</td>
+          </tr>
+          <tr style="border-bottom:1px solid #f0ebe0;">
+            <td style="padding:0.7rem 0; color:var(--text-light);">Username</td>
+            <td style="padding:0.7rem 0;">{{ profile.user.username }}</td>
+          </tr>
+          <tr style="border-bottom:1px solid #f0ebe0;">
+            <td style="padding:0.7rem 0; color:var(--text-light);">Email</td>
+            <td style="padding:0.7rem 0;">{{ profile.user.email }}</td>
+          </tr>
+          <tr style="border-bottom:1px solid #f0ebe0;">
+            <td style="padding:0.7rem 0; color:var(--text-light);">Phone</td>
+            <td style="padding:0.7rem 0;">{{ profile.phone }}</td>
+          </tr>
+          <tr style="border-bottom:1px solid #f0ebe0;">
+            <td style="padding:0.7rem 0; color:var(--text-light);">Date of Birth</td>
+            <td style="padding:0.7rem 0;">{{ profile.date_of_birth }}</td>
+          </tr>
+          <tr style="border-bottom:1px solid #f0ebe0;">
+            <td style="padding:0.7rem 0; color:var(--text-light);">Gender</td>
+            <td style="padding:0.7rem 0;">{{ profile.get_gender_display }}</td>
+          </tr>
+          <tr>
+            <td style="padding:0.7rem 0; color:var(--text-light);">Customer ID</td>
+            <td style="padding:0.7rem 0; font-size:0.8rem; color:var(--text-light);">{{ profile.customer_id }}</td>
+          </tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- Address & Employment -->
+    <div style="display:flex; flex-direction:column; gap:1.5rem;">
+      <div class="card">
+        <div class="card-header">
+          <h3><i class="fas fa-map-marker-alt"></i> Address</h3>
+        </div>
+        <div class="card-body">
+          <p>{{ profile.address_line1 }}</p>
+          {% if profile.address_line2 %}<p>{{ profile.address_line2 }}</p>{% endif %}
+          <p>{{ profile.city }}, {{ profile.state }} — {{ profile.pincode }}</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h3><i class="fas fa-briefcase"></i> Employment</h3>
+        </div>
+        <div class="card-body">
+          <table style="width:100%; border-collapse:collapse;">
+            <tr style="border-bottom:1px solid #f0ebe0;">
+              <td style="padding:0.6rem 0; color:var(--text-light);">Type</td>
+              <td style="padding:0.6rem 0; font-weight:600;">{{ profile.get_employment_type_display }}</td>
+            </tr>
+            {% if profile.employer_name %}
+            <tr style="border-bottom:1px solid #f0ebe0;">
+              <td style="padding:0.6rem 0; color:var(--text-light);">Employer</td>
+              <td style="padding:0.6rem 0;">{{ profile.employer_name }}</td>
+            </tr>
+            {% endif %}
+            <tr>
+              <td style="padding:0.6rem 0; color:var(--text-light);">Annual Income</td>
+              <td style="padding:0.6rem 0; font-weight:600;">₹{{ profile.annual_income|floatformat:0 }}</td>
+            </tr>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- KYC Card -->
+  <div class="card mt-3">
+    <div class="card-header">
+      <h3><i class="fas fa-id-card"></i> KYC Details</h3>
+    </div>
+    <div class="card-body">
+      <div class="grid grid-3">
+        <div>
+          <p style="color:var(--text-light); font-size:0.85rem;">Aadhaar Number</p>
+          <p style="font-weight:600;">XXXX-XXXX-{{ profile.aadhaar_number|slice:"-4:" }}</p>
+        </div>
+        <div>
+          <p style="color:var(--text-light); font-size:0.85rem;">PAN Number</p>
+          <p style="font-weight:600;">{{ profile.pan_number }}</p>
+        </div>
+        <div>
+          <p style="color:var(--text-light); font-size:0.85rem;">KYC Status</p>
+          <span class="badge {% if profile.kyc_status == 'VERIFIED' %}badge-active{% elif profile.kyc_status == 'REJECTED' %}badge-rejected{% else %}badge-pending{% endif %}">
+            {{ profile.kyc_status }}
+          </span>
+        </div>
+      </div>
+
+      <!-- KYC Status Messages & Actions -->
+      {% if profile.kyc_status == 'VERIFIED' %}
+        <div class="alert alert-success mt-3">
+          <i class="fas fa-check-circle"></i> Your KYC is verified. You can now apply for loans.
+        </div>
+      {% elif profile.kyc_status == 'PENDING' %}
+        <div class="alert alert-warning mt-3">
+          <i class="fas fa-clock"></i> KYC documents are under review. Verification takes 24–48 hours.
+        </div>
+      {% elif profile.kyc_status == 'REJECTED' %}
+        <div class="alert alert-danger mt-3">
+          <i class="fas fa-times-circle"></i> Your KYC was rejected. Please resubmit correct details.
+        </div>
+        <div class="mt-2">
+          <a href="{% url 'kyc_update' %}" class="btn btn-primary">
+            <i class="fas fa-redo"></i> Resubmit KYC
+          </a>
+        </div>
+      {% else %}
+        <div class="alert alert-info mt-3">
+          <i class="fas fa-info-circle"></i> Please complete your KYC to apply for loans.
+        </div>
+        <div class="mt-2">
+          <a href="{% url 'kyc_update' %}" class="btn btn-primary">
+            <i class="fas fa-id-card"></i> Complete KYC Verification
+          </a>
+        </div>
+      {% endif %}
+
+    </div>
+  </div>
+
+  <!-- Credit Scores -->
+  {% if credit_scores %}
+  <div class="card mt-3">
+    <div class="card-header">
+      <h3><i class="fas fa-chart-line"></i> Credit Scores</h3>
+    </div>
+    <div class="card-body">
+      <div class="grid grid-3">
+        {% for score in credit_scores %}
+        <div style="text-align:center; padding:1rem; background:var(--cream); border-radius:var(--radius);">
+          <div style="font-size:2rem; font-weight:700; color:{% if score.score >= 750 %}var(--success){% elif score.score >= 650 %}var(--gold){% else %}var(--danger){% endif %};">
+            {{ score.score }}
+          </div>
+          <div style="font-weight:600;">{{ score.bureau }}</div>
+          <div style="color:var(--text-light); font-size:0.85rem;">{{ score.rating }}</div>
+          <div style="color:var(--text-light); font-size:0.75rem;">{{ score.fetched_at|date:"d M Y" }}</div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Documents -->
+  {% if documents %}
+  <div class="card mt-3">
+    <div class="card-header">
+      <h3><i class="fas fa-file-alt"></i> Documents</h3>
+    </div>
+    <div class="card-body">
+      <div class="table-wrapper">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Document Type</th>
+              <th>Uploaded</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for doc in documents %}
+            <tr>
+              <td>{{ doc.get_document_type_display }}</td>
+              <td>{{ doc.uploaded_at|date:"d M Y" }}</td>
+              <td>
+                <span class="badge {% if doc.status == 'APPROVED' %}badge-active{% elif doc.status == 'REJECTED' %}badge-rejected{% else %}badge-pending{% endif %}">
+                  {{ doc.status }}
+                </span>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Loan Summary -->
+  <div class="card mt-3">
+    <div class="card-header">
+      <h3><i class="fas fa-hand-holding-usd"></i> Loan Summary</h3>
+    </div>
+    <div class="card-body">
+      <div class="grid grid-3">
+        <div style="text-align:center; padding:1rem; background:var(--cream); border-radius:var(--radius);">
+          <div style="font-size:2rem; font-weight:700; color:var(--navy);">{{ profile.total_loans }}</div>
+          <div style="color:var(--text-light); font-size:0.9rem;">Total Loans</div>
+        </div>
+        <div style="text-align:center; padding:1rem; background:var(--cream); border-radius:var(--radius);">
+          <div style="font-size:2rem; font-weight:700; color:var(--success);">{{ profile.active_loans }}</div>
+          <div style="color:var(--text-light); font-size:0.9rem;">Active Loans</div>
+        </div>
+        <div style="text-align:center; padding:1rem; background:var(--cream); border-radius:var(--radius);">
+          <div style="font-size:2rem; font-weight:700; color:var(--teal);">
+            {% if profile.kyc_status == 'VERIFIED' %}
+              <i class="fas fa-check-circle"></i>
+            {% else %}
+              <i class="fas fa-times-circle" style="color:var(--danger);"></i>
+            {% endif %}
+          </div>
+          <div style="color:var(--text-light); font-size:0.9rem;">Loan Eligible</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Action Buttons -->
+  <div class="mt-3" style="display:flex; gap:1rem; flex-wrap:wrap;">
+    <a href="{% url 'dashboard' %}" class="btn btn-outline">
+      <i class="fas fa-arrow-left"></i> Back to Dashboard
+    </a>
+    {% if profile.kyc_status != 'VERIFIED' %}
+    <a href="{% url 'kyc_update' %}" class="btn btn-primary">
+      <i class="fas fa-id-card"></i> Complete KYC
+    </a>
+    {% endif %}
+    {% if profile.kyc_status == 'VERIFIED' %}
+    <a href="{% url 'apply_loan' %}" class="btn btn-teal">
+      <i class="fas fa-plus"></i> Apply for Loan
+    </a>
+    {% endif %}
+  </div>
+
+</div>
+
+{% endblock %}

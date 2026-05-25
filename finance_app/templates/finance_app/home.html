@@ -1,0 +1,459 @@
+{% extends 'finance_app/base.html' %}
+{% load static %}
+{% block title %}Home{% endblock %}
+
+{% block extra_css %}
+<style>
+.top-banner img {
+  width: 100%;
+  height: 500px;
+  object-fit: cover;
+}
+@media (max-width: 768px) {
+  .top-banner img {
+    height: 160px;
+  }
+}
+@media (max-width: 480px) {
+  .top-banner img {
+    height: 110px;
+  }
+}
+/* ── HERO ── */
+.hero {
+  background: radial-gradient(circle, #2c2c2c, #3b3b3b, #212121);
+  /* background: linear-gradient(135deg, var(--navy) 0%, #0b012fe6 50%, var(--navy-light) 100%); */
+  min-height: 88vh;
+  display: flex; align-items: center;
+  position: relative; overflow: hidden;
+}
+.hero::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23C9A84C' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
+.hero-floating-1 {
+  position: absolute; right: 5%; top: 15%;
+  width: 300px; height: 300px;
+  background: radial-gradient(circle, rgba(201,168,76,0.12), transparent);
+  border-radius: 50%;
+  animation: float 6s ease-in-out infinite;
+}
+.hero-floating-2 {
+  position: absolute; left: 2%; bottom: 10%;
+  width: 200px; height: 200px;
+  background: radial-gradient(circle, rgba(27,107,123,0.15), transparent);
+  border-radius: 50%;
+  animation: float 8s ease-in-out infinite reverse;
+}
+.hero-content {
+  position: relative; z-index: 1;
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 3rem; align-items: center;
+}
+.hero-text h1 { color: var(--white); }
+.hero-text h1 span { color: var(--gold); }
+.hero-text p { color: rgba(255,255,255,0.75); font-size: 1.1rem; margin: 1.5rem 0; }
+.hero-badges {
+  display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 2rem;
+}
+.hero-badge {
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(201,168,76,0.3);
+  color: rgba(255,255,255,0.8);
+  padding: 0.4rem 0.9rem; border-radius: 20px;
+  font-size: 0.82rem;
+  display: flex; align-items: center; gap: 6px;
+}
+.hero-cta { display: flex; gap: 1rem; margin-top: 2rem; flex-wrap: wrap; }
+
+/* Hero card */
+.hero-card {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(201,168,76,0.2);
+  backdrop-filter: blur(10px);
+  border-radius: var(--radius-lg);
+  padding: 2rem;
+  color: white;
+}
+.hero-card-title { color: var(--gold); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 1.5rem; }
+.quick-calc-result {
+  background: rgba(201,168,76,0.1); border: 1px solid rgba(201,168,76,0.3);
+  border-radius: var(--radius); padding: 1rem; margin-top: 1rem;
+  display: none;
+}
+.quick-calc-result.show { display: block; }
+.emi-display { font-size: 2.2rem; font-weight: 900; color: var(--gold); font-family: 'Playfair Display', serif; }
+.range-input { -webkit-appearance: none; width: 100%; height: 6px; border-radius: 3px; background: rgba(255,255,255,0.2); outline: none; margin-top: 8px; }
+.range-input::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: var(--gold); cursor: pointer; }
+.range-label { display: flex; justify-content: space-between; color: rgba(255,255,255,0.6); font-size: 0.8rem; margin-top: 4px; }
+
+/* ── TRUST STRIP ── */
+.trust-strip {
+  background: var(--gold);
+  padding: 0.8rem 0;
+  overflow: hidden;
+}
+.trust-scroll {
+  display: flex; gap: 3rem;
+  animation: scrollLeft 20s linear infinite;
+  width: max-content;
+}
+@keyframes scrollLeft { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+.trust-item { display: flex; align-items: center; gap: 8px; white-space: nowrap; color: var(--navy); font-weight: 700; font-size: 0.9rem; }
+
+/* ── PRODUCTS GRID ── */
+.product-card {
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  padding: 1.8rem;
+  box-shadow: var(--shadow);
+  transition: var(--transition);
+  position: relative; overflow: hidden;
+  cursor: pointer;
+}
+.product-card::after {
+  content: '';
+  position: absolute; bottom: 0; left: 0; right: 0; height: 4px;
+  background: linear-gradient(90deg, var(--gold), var(--teal));
+  transform: scaleX(0); transform-origin: left;
+  transition: transform 0.3s ease;
+}
+.product-card:hover { transform: translateY(-6px); box-shadow: var(--shadow-lg); }
+.product-card:hover::after { transform: scaleX(1); }
+.product-image { width: 100%; height: 180px; object-fit: cover; border-radius: var(--radius); margin-bottom: 1rem; }
+.product-rate { color: var(--teal); font-weight: 700; font-size: 1.1rem; }
+.product-range { color: var(--text-light); font-size: 0.82rem; margin: 0.3rem 0 1rem; }
+
+/* ── PROCESS STEPS ── */
+.process-steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2rem; position: relative; }
+.process-steps::before {
+  content: '';
+  position: absolute; top: 28px; left: 12%; right: 12%;
+  height: 2px;
+  background: linear-gradient(90deg, var(--gold), var(--teal));
+  z-index: 0;
+}
+.step-card {
+  text-align: center; position: relative; z-index: 1;
+  background: var(--white); border-radius: var(--radius-lg); padding: 1.5rem 1rem;
+  box-shadow: var(--shadow); transition: var(--transition);
+}
+.step-card:hover { transform: translateY(-4px); }
+.step-num {
+  width: 56px; height: 56px;
+  background: linear-gradient(135deg, var(--gold), var(--gold-light));
+  color: var(--navy); font-weight: 900; font-size: 1.2rem;
+  border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 1rem;
+  box-shadow: 0 4px 16px rgba(201,168,76,0.4);
+}
+.step-icon { font-size: 1.8rem; margin-bottom: 0.8rem; }
+
+/* ── STATS SECTION ── */
+.stats-section { background: #545454; padding: 4rem 0; }
+.stats-section h2 { color: #FF7531; }
+.stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2rem; margin-top: 2.5rem; }
+.stat-item { text-align: center; }
+.stat-item .number { font-size: 3rem; font-weight: 900; color:white; font-family: 'Playfair Display', serif; }
+.stat-item .label { color: rgba(255,255,255,0.6); font-size: 1rem; margin-top: 0.3rem; }
+
+/* ── TESTIMONIALS ── */
+.testimonial-card {
+  background: var(--white); border-radius: var(--radius-lg);
+  padding: 1.8rem; box-shadow: var(--shadow);
+  position: relative;
+}
+.testimonial-card::before {
+  content: '"'; position: absolute; top: 1rem; right: 1.5rem;
+  font-size: 5rem; color: rgba(201,168,76,0.15);
+  font-family: 'Playfair Display', serif; line-height: 1;
+}
+.stars { color: var(--gold); }
+.testimonial-text { color: var(--text-mid); font-style: italic; margin: 0.8rem 0; line-height: 1.7; }
+.author-name { font-weight: 700; color: var(--navy); }
+.author-detail { color: var(--text-light); font-size: 0.85rem; }
+
+@media (max-width: 900px) {
+  .hero-content { grid-template-columns: 1fr; }
+  .hero-card { display: none; }
+  .process-steps { grid-template-columns: repeat(1, 1fr); }
+  .process-steps::before { display: none; }
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="top-banner">
+  <img src="{% static 'images/family.png' %}" alt="AMFC Finance Banner">
+</div>
+
+<!-- ── HERO ─────────────────────────── -->
+<section class="hero">
+  <div class="hero-floating-1"></div>
+  <div class="hero-floating-2"></div>
+  <div class="container">
+    <div class="hero-content">
+      <div class="hero-text animate-fade-up">
+        
+        <h1>Fast Loans, <span>Trusted</span> Finance for Everyone</h1>
+        <p>Get instant gold loans, personal loans, home loans, and more. Minimal documentation, quick disbursal, and transparent rates — inspired by Muthoot Finance standards.</p>
+
+        <div class="hero-badges">
+          <span class="hero-badge"><i class="fas fa-bolt"></i> Instant Approval</span>
+          <span class="hero-badge"><i class="fas fa-percent"></i> Low Interest Rates</span>
+          <span class="hero-badge"><i class="fas fa-file-alt"></i> Minimal Docs</span>
+        </div>
+
+        <div class="hero-cta">
+          <a href="{% url 'apply_loan' %}" class="btn btn-primary btn-lg">
+            <i class="fas fa-paper-plane"></i> Apply Now
+          </a>
+          <a href="{% url 'emi_calculator' %}" class="btn btn-outline btn-lg">
+            <i class="fas fa-calculator"></i> EMI Calculator
+          </a>
+        </div>
+      </div>
+
+      <!-- Quick Calculator Card -->
+      <div class="hero-card animate-fade-up animate-delay-2">
+        <div class="hero-card-title">⚡ Quick EMI Calculator</div>
+
+        <div class="form-group">
+          <label class="form-label" style="color:rgba(255,255,255,0.8);">Loan Amount</label>
+          <input type="range" class="range-input" id="heroAmount" min="10000" max="1000000" value="100000" step="5000" oninput="updateHeroCalc()">
+          <div class="range-label">
+            <span>₹10,000</span>
+            <span id="heroAmountVal" style="color:var(--gold);font-weight:700;">₹1,00,000</span>
+            <span>₹10L</span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" style="color:rgba(255,255,255,0.8);">Tenure (Months)</label>
+          <input type="range" class="range-input" id="heroTenure" min="3" max="84" value="24" oninput="updateHeroCalc()">
+          <div class="range-label">
+            <span>3 Mo</span>
+            <span id="heroTenureVal" style="color:var(--gold);font-weight:700;">24 Months</span>
+            <span>84 Mo</span>
+          </div>
+        </div>
+
+        <div class="quick-calc-result show" id="heroResult">
+          <div style="color:rgba(255,255,255,0.7);font-size:0.82rem;">Monthly EMI</div>
+          <div class="emi-display" id="heroEmi">₹4,727</div>
+          <div style="display:flex;gap:1rem;margin-top:0.5rem;">
+            <div style="font-size:0.8rem;color:rgba(255,255,255,0.6);">Total: <span id="heroTotal" style="color:var(--gold);">₹1,13,448</span></div>
+            <div style="font-size:0.8rem;color:rgba(255,255,255,0.6);">Interest: <span id="heroInterest" style="color:#ff8a80;">₹13,448</span></div>
+          </div>
+        </div>
+
+        <a href="{% url 'apply_loan' %}" class="btn btn-primary" style="width:100%;justify-content:center;margin-top:1rem;">
+          Apply for This Loan →
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── TRUST STRIP ── -->
+<div class="trust-strip">
+  <div class="trust-scroll">
+    {% for item in "123456789" %}
+    <span class="trust-item"><i class="fas fa-check-circle"></i> 50 Lakh+ Customers</span>
+    <span class="trust-item"><i class="fas fa-star"></i> RBI Registered NBFC</span>
+    <span class="trust-item"><i class="fas fa-bolt"></i> Instant Disbursal</span>
+    <span class="trust-item"><i class="fas fa-shield-alt"></i> 100% Secure</span>
+    <span class="trust-item"><i class="fas fa-map-marker-alt"></i> {{ stats.branches }}+ Branches</span>
+    <span class="trust-item"><i class="fas fa-clock"></i> 24/7 Support</span>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- ── LOAN PRODUCTS ──────────────────── -->
+<section class="section">
+  <div class="container">
+    <div class="section-title reveal">
+      <h2 style="color: #FF7531;">Our Loan Products</h2>
+      <p>Tailored financial solutions for every need</p>
+      <div class="gold-line"></div>
+    </div>
+
+    <div class="grid grid-3">
+      {% for product in products %}
+      <div class="product-card reveal animate-delay-{{ forloop.counter }}">
+        {% if product.loan_type == 'GOLD' %}
+          <img src="{% static 'images/goldchain.png' %}" alt="{{ product.name }}" class="product-image">
+        {% elif product.loan_type == 'PERSONAL' %}
+          <img src="{% static 'images/personal.jpg' %}" alt="{{ product.name }}" class="product-image">
+        {% elif product.loan_type == 'HOME' %}
+          <img src="{% static 'images/home.jpeg' %}" alt="{{ product.name }}" class="product-image">
+        {% elif product.loan_type == 'BUSINESS' %}
+          <img src="{% static 'images/bussiness.png' %}" alt="{{ product.name }}" class="product-image">
+        {% elif product.loan_type == 'VEHICLE' %}
+          <img src="{% static 'images/vehicle.jpg' %}" alt="{{ product.name }}" class="product-image">
+        {% elif product.loan_type == 'EDUCATION' %}
+          <img src="{% static 'images/education.jpg' %}" alt="{{ product.name }}" class="product-image">
+        {% elif product.loan_type == 'MICRO' %}
+          <img src="{% static 'images/family.png' %}" alt="{{ product.name }}" class="product-image">
+        {% else %}
+          <img src="{% static 'images/amfc.jpeg' %}" alt="{{ product.name }}" class="product-image">
+        {% endif %}
+        <h3>{{ product.name }}</h3>
+        <div class="product-rate">From {{ product.base_interest_rate }}% p.a.</div>
+        <div class="product-range">₹{{ product.min_amount|floatformat:0 }} — ₹{{ product.max_amount|floatformat:0 }}</div>
+        <p style="font-size:0.88rem;color:var(--text-mid);margin-bottom:1.2rem;">{{ product.description|truncatechars:90 }}</p>
+        <div style="display:flex;gap:0.7rem;">
+          <a href="{% url 'loan_product_detail' product.pk %}" class="btn btn-outline btn-sm">Learn More</a>
+          <a href="{% url 'apply_loan_product' product.pk %}" class="btn btn-navy btn-sm">Apply</a>
+        </div>
+      </div>
+      {% empty %}
+      <div style="grid-column:1/-1;text-align:center;padding:3rem;color:var(--text-light);">
+        <i class="fas fa-info-circle" style="font-size:2rem;"></i>
+        <p>No products available yet. Add them in Admin panel.</p>
+      </div>
+      {% endfor %}
+    </div>
+
+    <div class="text-center mt-4">
+      <a href="{% url 'loan_products' %}" class="btn btn-primary btn-lg">View All Products <i class="fas fa-arrow-right"></i></a>
+    </div>
+  </div>
+</section>
+
+<!-- ── HOW IT WORKS ────────────────── -->
+<section class="section section-alt">
+  <div class="container">
+    <div class="section-title reveal">
+      <h2>How It Works</h2>
+      <p>Get your loan in 4 simple steps</p>
+      <div class="gold-line"></div>
+    </div>
+
+    <div class="process-steps">
+      <div class="step-card reveal">
+        <div class="step-num">1</div>
+        <div class="step-icon">📋</div>
+        <h3>Register</h3>
+        <p style="color:var(--text-mid);font-size:0.88rem;">Create your account and complete your profile with basic details.</p>
+      </div>
+      <div class="step-card reveal animate-delay-1">
+        <div class="step-num">2</div>
+        <div class="step-icon">🪪</div>
+        <h3>KYC Verification</h3>
+        <p style="color:var(--text-mid);font-size:0.88rem;">Upload Aadhaar, PAN, and income proof for quick verification.</p>
+      </div>
+      <div class="step-card reveal animate-delay-2">
+        <div class="step-num">3</div>
+        <div class="step-icon">📬</div>
+        <h3>Apply Online</h3>
+        <p style="color:var(--text-mid);font-size:0.88rem;">Choose your loan product and submit your application online.</p>
+      </div>
+      <div class="step-card reveal animate-delay-3">
+        <div class="step-num">4</div>
+        <div class="step-icon">💳</div>
+        <h3>Get Disbursed</h3>
+        <p style="color:var(--text-mid);font-size:0.88rem;">Approved amount gets directly credited to your bank account.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── STATS ─────────────────────────── -->
+<section class="stats-section">
+  <div class="container">
+    <div class="section-title reveal">
+      <h2 style="color:white;">Trusted by Millions</h2>
+      <p style="color:rgba(255,255,255,0.6);">Our numbers speak for themselves</p>
+      <div class="gold-line"></div>
+    </div>
+    <div class="stats-grid stats-section">
+      <div class="stat-item reveal">
+        <div class="number" data-count="{{ stats.total_customers }}" data-suffix="+">0+</div>
+        <div class="label">Happy Customers</div>
+      </div>
+      <div class="stat-item reveal animate-delay-1">
+        <div class="number" data-count="{{ stats.total_loans }}" data-suffix="+">0+</div>
+        <div class="label">Loans Processed</div>
+      </div>
+      <div class="stat-item reveal animate-delay-2">
+        <div class="number" data-count="{{ stats.branches }}" data-suffix="+">0+</div>
+        <div class="label">Branch Network</div>
+      </div>
+      <div class="stat-item reveal animate-delay-3">
+        <div class="number" data-count="6" data-suffix=" Yrs">0</div>
+        <div class="label">Years of Excellence</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── TESTIMONIALS ─────────────────── -->
+<section class="section">
+  <div class="container">
+    <div class="section-title reveal">
+      <h2 style="color: #FF7531;">What Customers Say</h2>
+      <p>Real stories from real customers</p>
+      <div class="gold-line"></div>
+    </div>
+    <div class="grid grid-3">
+      <div class="testimonial-card reveal">
+        <div class="stars">★★★★★</div>
+        <p class="testimonial-text">"Got my gold loan in under 30 minutes! The process was smooth and the staff was very helpful. Highly recommended!"</p>
+        <div class="author-name">Ramesh Kumar</div>
+        <div class="author-detail">Merchant, Chennai</div>
+      </div>
+      <div class="testimonial-card reveal animate-delay-1">
+        <div class="stars">★★★★★</div>
+        <p class="testimonial-text">"The personal loan helped me fund my daughter's education. Very transparent interest rates and no hidden charges."</p>
+        <div class="author-name">Priya Sharma</div>
+        <div class="author-detail">Teacher, Mumbai</div>
+      </div>
+      <div class="testimonial-card reveal animate-delay-2">
+        <div class="stars">★★★★☆</div>
+        <p class="testimonial-text">"Business loan approved within 3 days. The EMI dashboard is very user-friendly. Will definitely use again."</p>
+        <div class="author-name">Abdul Rahman</div>
+        <div class="author-detail">Business Owner, Hyderabad</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── CTA BANNER ─────────────────── -->
+<section style="background:#FF7531;padding:4rem 0;">
+  <div class="container text-center">
+    <h2 style="color:var(--navy);font-size:2.5rem;">Ready to Get Started?</h2>
+    <p style="color:rgba(13,27,42,0.7);margin:1rem 0 2rem;font-size:1.1rem;">Join millions of satisfied customers. Apply in minutes, get funded fast.</p>
+    <div class="flex-center gap-2">
+      <a href="{% url 'register' %}" class="btn btn-navy btn-lg">Create Account <i class="fas fa-arrow-right"></i></a>
+      <a href="{% url 'contact' %}" class="btn" style="background:rgba(13,27,42,0.15);color:var(--navy);font-size:1rem;">Talk to Expert</a>
+    </div>
+  </div>
+</section>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function updateHeroCalc() {
+  const amount = parseInt(document.getElementById('heroAmount').value);
+  const tenure = parseInt(document.getElementById('heroTenure').value);
+  const rate = 12; // default 12% for display
+
+  document.getElementById('heroAmountVal').textContent = '₹' + amount.toLocaleString('en-IN');
+  document.getElementById('heroTenureVal').textContent = tenure + ' Months';
+
+  const r = rate / 100 / 12;
+  const emi = amount * r * Math.pow(1+r, tenure) / (Math.pow(1+r, tenure) - 1);
+  const total = emi * tenure;
+  const interest = total - amount;
+
+  document.getElementById('heroEmi').textContent = '₹' + Math.round(emi).toLocaleString('en-IN');
+  document.getElementById('heroTotal').textContent = '₹' + Math.round(total).toLocaleString('en-IN');
+  document.getElementById('heroInterest').textContent = '₹' + Math.round(interest).toLocaleString('en-IN');
+}
+updateHeroCalc();
+</script>
+{% endblock %}

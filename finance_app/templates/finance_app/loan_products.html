@@ -1,0 +1,105 @@
+{% extends 'finance_app/base.html' %}
+{% load static %}
+{% block title %}Loan Products{% endblock %}
+{% block extra_css %}
+<style>
+.page-hero {background: radial-gradient(circle, #2c2c2c, #3b3b3b, #212121); padding: 3rem 0; color: white; text-align: center;}
+.page-hero h1 { color: white; font-size: 2.5rem; }
+.page-hero p { color: rgba(255,255,255,0.7); margin-top: 0.5rem; }
+
+.filter-tabs { display: flex; gap: 0.7rem; flex-wrap: wrap; margin: 2rem 0; }
+.filter-tab {
+  padding: 0.5rem 1.2rem; border-radius: 20px;
+  border: 2px solid #e2e8f0; background: white;
+  color: var(--text-mid); font-weight: 600; font-size: 0.88rem;
+  cursor: pointer; transition: var(--transition); text-decoration: none;
+}
+.filter-tab:hover, .filter-tab.active { border-color: var(--gold); color: var(--navy); background: rgba(201,168,76,0.1); }
+
+.product-big-card {
+  background: white; border-radius: var(--radius-lg); box-shadow: var(--shadow);
+  overflow: hidden; transition: var(--transition); margin-bottom: 1.5rem;
+  display: grid; grid-template-columns: 1fr 2fr 1fr;
+}
+.product-big-card:hover { box-shadow: var(--shadow-lg); transform: translateY(-3px); }
+.pbc-image-col { display: flex; align-items: center; justify-content: center; overflow: hidden; background: var(--navy); }
+.pbc-image-col img { width: 100%; height: 100%; object-fit: cover; min-height: 250px; }
+.pbc-info { padding: 1.8rem; }
+.pbc-actions { padding: 1.8rem; background: var(--cream); display: flex; flex-direction: column; justify-content: center; gap: 0.7rem; }
+.feature-chip { display: inline-block; background: rgba(27,107,123,0.08); color: var(--teal); padding: 3px 10px; border-radius: 15px; font-size: 0.78rem; margin: 2px; }
+
+@media (max-width: 768px) {
+  .product-big-card { grid-template-columns: 1fr; }
+  .pbc-image-col img { height: 200px; min-height: 200px; }
+}
+</style>
+{% endblock %}
+{% block content %}
+<div class="page-hero">
+  <div class="container animate-fade-up">
+    <h1>Our Loan Products</h1>
+    <p>Find the perfect financial solution for your needs</p>
+  </div>
+</div>
+
+<section class="section" style="background: #FF7531;">
+  <div class="container">
+    <div class="filter-tabs">
+      <a href="{% url 'loan_products' %}" class="filter-tab {% if not selected_type %}active{% endif %}">All Products</a>
+      <a href="?type=GOLD" class="filter-tab {% if selected_type == 'GOLD' %}active{% endif %}">🪙 Gold Loan</a>
+      <a href="?type=PERSONAL" class="filter-tab {% if selected_type == 'PERSONAL' %}active{% endif %}">👤 Personal</a>
+      <a href="?type=HOME" class="filter-tab {% if selected_type == 'HOME' %}active{% endif %}">🏠 Home Loan</a>
+      <a href="?type=BUSINESS" class="filter-tab {% if selected_type == 'BUSINESS' %}active{% endif %}">💼 Business</a>
+      <a href="?type=VEHICLE" class="filter-tab {% if selected_type == 'VEHICLE' %}active{% endif %}">🚗 Vehicle</a>
+    </div>
+
+    {% for product in products %}
+    <div class="product-big-card reveal">
+      <div class="pbc-image-col">
+        {% if product.loan_type == 'GOLD' %}
+          <img src="{% static 'images/goldchain.png' %}" alt="{{ product.name }}">
+        {% elif product.loan_type == 'PERSONAL' %}
+          <img src="{% static 'images/personal.jpg' %}" alt="{{ product.name }}">
+        {% elif product.loan_type == 'HOME' %}
+          <img src="{% static 'images/home.jpeg' %}" alt="{{ product.name }}">
+        {% elif product.loan_type == 'BUSINESS' %}
+          <img src="{% static 'images/bussiness.png' %}" alt="{{ product.name }}">
+        {% elif product.loan_type == 'VEHICLE' %}
+          <img src="{% static 'images/vehicle.jpg' %}" alt="{{ product.name }}">
+        {% elif product.loan_type == 'EDUCATION' %}
+          <img src="{% static 'images/education.jpg' %}" alt="{{ product.name }}">
+        {% elif product.loan_type == 'MICRO' %}
+          <img src="{% static 'images/family.png' %}" alt="{{ product.name }}">
+        {% else %}
+          <img src="{% static 'images/amfc.jpeg' %}" alt="{{ product.name }}">
+        {% endif %}
+      </div>
+      <div class="pbc-info">
+        <h3 style="color:var(--navy);">{{ product.name }}</h3>
+        <div style="margin:0.5rem 0;">
+          <span style="color:var(--teal);font-weight:700;font-size:1.1rem;">{{ product.base_interest_rate }}% p.a.</span>
+          <span style="color:var(--text-light);margin-left:1rem;font-size:0.88rem;">₹{{ product.min_amount|floatformat:0 }} – ₹{{ product.max_amount|floatformat:0 }}</span>
+          <span style="color:var(--text-light);margin-left:1rem;font-size:0.88rem;">{{ product.min_tenure_months }}–{{ product.max_tenure_months }} months</span>
+        </div>
+        <p style="color:var(--text-mid);font-size:0.9rem;margin:0.7rem 0;">{{ product.description }}</p>
+        <div>
+          {% for feature in product.features %}
+          <span class="feature-chip">✓ {{ feature }}</span>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="pbc-actions">
+        <a href="{% url 'apply_loan_product' product.pk %}" class="btn btn-primary" style="justify-content:center;">Apply Now</a>
+        <a href="{% url 'loan_product_detail' product.pk %}" class="btn btn-outline" style="justify-content:center;">Details</a>
+        <a href="{% url 'emi_calculator' %}" class="btn btn-navy btn-sm" style="justify-content:center;font-size:0.8rem;">Calculate EMI</a>
+      </div>
+    </div>
+    {% empty %}
+    <div style="text-align:center;padding:4rem;color:var(--text-light);">
+      <i class="fas fa-search" style="font-size:3rem;"></i>
+      <h3>No products found</h3>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

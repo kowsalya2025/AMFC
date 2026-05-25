@@ -1,0 +1,53 @@
+{% extends 'finance_app/base.html' %}
+{% block title %}Login{% endblock %}
+{% block extra_css %}
+<style>
+.auth-page { min-height: calc(100vh - 70px); background: linear-gradient(135deg, var(--navy) 50%, var(--cream) 50%); display: flex; align-items: center; }
+.auth-card { max-width: 440px; width: 100%; margin: 2rem auto; background: white; border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); overflow: hidden; }
+.auth-header { background: linear-gradient(135deg, var(--gold), var(--gold-light)); padding: 2rem; text-align: center; }
+.auth-header h2 { color: var(--navy); font-size: 1.8rem; }
+.auth-header p { color: rgba(13,27,42,0.6); font-size: 0.9rem; margin-top: 4px; }
+.auth-body { padding: 2rem; }
+.divider { display: flex; align-items: center; gap: 1rem; margin: 1.5rem 0; }
+.divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: #e2e8f0; }
+.divider span { color: var(--text-light); font-size: 0.85rem; }
+.auth-links { text-align: center; margin-top: 1rem; font-size: 0.9rem; }
+.auth-links a { color: var(--teal); font-weight: 600; }
+</style>
+{% endblock %}
+{% block content %}
+<div class="auth-page">
+  <div style="width:100%;padding:1rem;">
+    <div class="auth-card animate-fade-up">
+      <div class="auth-header">
+        <div style="font-size:2.5rem;margin-bottom:0.5rem;">🔐</div>
+        <h2>Welcome Back</h2>
+        <p>Login to your AMFC account</p>
+      </div>
+      <div class="auth-body">
+        <form method="post">
+          {% csrf_token %}
+          <div class="form-group">
+            <label class="form-label">Username</label>
+            <input type="text" name="username" class="form-control" placeholder="Enter username" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Password</label>
+            <input type="password" name="password" class="form-control" placeholder="Enter password" required>
+          </div>
+          <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;margin-top:0.5rem;padding:0.9rem;">
+            <i class="fas fa-sign-in-alt"></i> Login
+          </button>
+        </form>
+        <div class="divider"><span>OR</span></div>
+        <div class="auth-links">
+          Don't have an account? <a href="{% url 'register' %}">Register Free →</a>
+        </div>
+        <div class="auth-links mt-1">
+          <a href="#" style="color:var(--text-light);font-size:0.85rem;">Forgot Password?</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

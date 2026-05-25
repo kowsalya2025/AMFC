@@ -1,0 +1,172 @@
+{% extends 'finance_app/base.html' %}
+{% block title %}Loan {{ loan.reference_number }}{% endblock %}
+{% block content %}
+<div style="background:linear-gradient(135deg,var(--navy),var(--teal));padding:2.5rem 0;color:white;">
+  <div class="container">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;">
+      <div>
+        <div style="color:rgba(255,255,255,0.6);font-size:0.8rem;margin-bottom:0.3rem;">Loan Reference</div>
+        <h2 style="color:white;font-size:2rem;">{{ loan.reference_number }}</h2>
+        <span class="badge badge-{{ loan.status|lower }}" style="margin-top:0.5rem;">{{ loan.get_status_display }}</span>
+      </div>
+      <div style="text-align:right;">
+        <div style="color:rgba(255,255,255,0.6);font-size:0.8rem;">Loan Amount</div>
+        <div style="color:var(--gold);font-family:'Playfair Display',serif;font-size:2.5rem;font-weight:900;">₹{{ loan.requested_amount|floatformat:0 }}</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<section class="section" >
+  <div class="container">
+    <div style="display:grid;grid-template-columns:2fr 1fr;gap:1.5rem;">
+      <div>
+        <!-- Loan Info -->
+        <div class="card mb-3">
+          <div class="card-header"><i class="fas fa-info-circle"></i> Loan Details</div>
+          <div class="card-body">
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;">
+              {% for label, val in "Product"|add:","|add:loan.product.name|split:"," %}
+              {% endfor %}
+              <div style="padding:1rem;background:var(--cream);border-radius:var(--radius);">
+                <div style="font-size:0.75rem;color:var(--text-light);margin-bottom:4px;">Product</div>
+                <div style="font-weight:700;">{{ loan.product.icon }} {{ loan.product.name }}</div>
+              </div>
+              <div style="padding:1rem;background:var(--cream);border-radius:var(--radius);">
+                <div style="font-size:0.75rem;color:var(--text-light);margin-bottom:4px;">Interest Rate</div>
+                <div style="font-weight:700;color:var(--teal);">{{ loan.interest_rate }}% p.a.</div>
+              </div>
+              <div style="padding:1rem;background:var(--cream);border-radius:var(--radius);">
+                <div style="font-size:0.75rem;color:var(--text-light);margin-bottom:4px;">Tenure</div>
+                <div style="font-weight:700;">{{ loan.tenure_months }} Months</div>
+              </div>
+              <div style="padding:1rem;background:var(--cream);border-radius:var(--radius);">
+                <div style="font-size:0.75rem;color:var(--text-light);margin-bottom:4px;">Monthly EMI</div>
+                <div style="font-weight:700;color:var(--gold);font-size:1.2rem;">{% if loan.emi_amount %}₹{{ loan.emi_amount|floatformat:0 }}{% else %}—{% endif %}</div>
+              </div>
+              <div style="padding:1rem;background:var(--cream);border-radius:var(--radius);">
+                <div style="font-size:0.75px;color:var(--text-light);margin-bottom:4px;">Applied On</div>
+                <div style="font-weight:700;">{{ loan.applied_at|date:"d M Y" }}</div>
+              </div>
+              <div style="padding:1rem;background:var(--cream);border-radius:var(--radius);">
+                <div style="font-size:0.75rem;color:var(--text-light);margin-bottom:4px;">Status</div>
+                <span class="badge badge-{{ loan.status|lower }}">{{ loan.get_status_display }}</span>
+              </div>
+            </div>
+            {% if loan.loan_purpose %}
+            <div style="margin-top:1rem;padding:1rem;background:var(--cream);border-radius:var(--radius);">
+              <div style="font-size:0.75rem;color:var(--text-light);margin-bottom:4px;">Loan Purpose</div>
+              <p style="color:var(--text-mid);font-size:0.9rem;">{{ loan.loan_purpose }}</p>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- EMI Schedule -->
+        <div class="card mb-3">
+          <div class="card-header" style="display:flex;justify-content:space-between;">
+            <span><i class="fas fa-calendar-alt"></i> EMI Schedule</span>
+            <span style="color:rgba(255,255,255,0.6);font-size:0.82rem;">{{ loan.paid_emis }}/{{ loan.total_emis }} paid</span>
+          </div>
+          <div style="overflow-x:auto;">
+            <table class="table">
+              <thead><tr><th>#</th><th>Due Date</th><th>EMI</th><th>Principal</th><th>Interest</th><th>Balance</th><th>Status</th><th></th></tr></thead>
+              <tbody>
+                {% for emi in emi_schedule %}
+                <tr style="{% if emi.is_overdue %}background:rgba(185,28,28,0.03);{% endif %}">
+                  <td>{{ emi.emi_number }}</td>
+                  <td style="{% if emi.is_overdue %}color:var(--danger);font-weight:600;{% endif %}">{{ emi.due_date|date:"d M Y" }}{% if emi.is_overdue %} ⚠️{% endif %}</td>
+                  <td style="font-weight:700;">₹{{ emi.emi_amount|floatformat:0 }}</td>
+                  <td>₹{{ emi.principal_amt|floatformat:0 }}</td>
+                  <td>₹{{ emi.interest_amt|floatformat:0 }}</td>
+                  <td>₹{{ emi.outstanding_bal|floatformat:0 }}</td>
+                  <td>
+                    {% if emi.is_paid %}<span class="badge badge-active">✓ Paid</span>
+                    {% elif emi.is_overdue %}<span class="badge badge-rejected">Overdue</span>
+                    {% else %}<span class="badge badge-pending">Upcoming</span>{% endif %}
+                  </td>
+                  <td>
+                    {% if not emi.is_paid %}
+                    <a href="{% url 'pay_emi' emi.pk %}" class="btn btn-primary btn-sm">Pay</a>
+                    {% endif %}
+                  </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="8" style="text-align:center;color:var(--text-light);padding:1.5rem;">EMI schedule will be generated after loan disbursement.</td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Transactions -->
+        <div class="card">
+          <div class="card-header"><i class="fas fa-exchange-alt"></i> Transaction History</div>
+          <div style="overflow-x:auto;">
+            <table class="table">
+              <thead><tr><th>Txn Type</th><th>Amount</th><th>Mode</th><th>Reference</th><th>Status</th><th>Date</th></tr></thead>
+              <tbody>
+                {% for txn in transactions %}
+                <tr>
+                  <td>{{ txn.get_transaction_type_display }}</td>
+                  <td style="font-weight:700;">₹{{ txn.amount|floatformat:0 }}</td>
+                  <td>{{ txn.get_payment_mode_display }}</td>
+                  <td style="font-size:0.8rem;color:var(--text-light);">{{ txn.reference_number|default:"—" }}</td>
+                  <td><span class="badge badge-{% if txn.status == 'SUCCESS' %}active{% elif txn.status == 'FAILED' %}rejected{% else %}pending{% endif %}">{{ txn.status }}</span></td>
+                  <td style="font-size:0.82rem;color:var(--text-light);">{{ txn.processed_at|date:"d M Y h:i A" }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6" style="text-align:center;color:var(--text-light);padding:1.5rem;">No transactions yet.</td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT SIDEBAR -->
+      <div>
+        <div class="card mb-3" style="background:var(--navy);color:white;">
+          <div class="card-body">
+            <div style="color:var(--gold);font-size:0.75rem;text-transform:uppercase;letter-spacing:2px;">Repayment Progress</div>
+            <div style="display:flex;justify-content:space-between;margin:1rem 0 0.4rem;">
+              <span style="color:rgba(255,255,255,0.7);font-size:0.85rem;">{{ loan.paid_emis }} of {{ loan.total_emis }} EMIs</span>
+              <span style="color:var(--gold);font-weight:700;">{% if loan.total_emis %}{{ loan.paid_emis|floatformat:0 }}%{% else %}0%{% endif %}</span>
+            </div>
+            <div class="progress"><div class="progress-bar" style="width:{% if loan.total_emis %}{{ loan.paid_emis|floatformat:0 }}{% else %}0{% endif %}%;"></div></div>
+          </div>
+        </div>
+
+        <div class="card mb-3">
+          <div class="card-header"><i class="fas fa-bolt"></i> Quick Actions</div>
+          <div class="card-body" style="display:grid;gap:0.7rem;">
+            {% if loan.status == 'ACTIVE' %}
+            {% with loan.emi_schedule.filter as upcoming %}
+            <a href="{% url 'my_loans' %}" class="btn btn-outline" style="justify-content:center;">← Back to Loans</a>
+            {% endwith %}
+            {% endif %}
+            <a href="{% url 'emi_calculator' %}" class="btn btn-navy" style="justify-content:center;"><i class="fas fa-calculator"></i> EMI Calculator</a>
+            <a href="{% url 'contact' %}" class="btn btn-teal" style="justify-content:center;"><i class="fas fa-headset"></i> Get Support</a>
+          </div>
+        </div>
+
+        {% if loan.gold_pledge %}
+        <div class="card" style="border:2px solid var(--gold);">
+          <div class="card-header" style="background:linear-gradient(135deg,var(--gold),var(--gold-light));color:var(--navy);">
+            <i class="fas fa-ring"></i> Gold Pledge Details
+          </div>
+          <div class="card-body">
+            <div style="font-size:0.88rem;">
+              <div style="display:flex;justify-content:space-between;padding:0.3rem 0;"><span style="color:var(--text-light);">Purity</span><span style="font-weight:700;">{{ loan.gold_pledge.gold_purity }}K</span></div>
+              <div style="display:flex;justify-content:space-between;padding:0.3rem 0;"><span style="color:var(--text-light);">Net Weight</span><span style="font-weight:700;">{{ loan.gold_pledge.net_weight_g }}g</span></div>
+              <div style="display:flex;justify-content:space-between;padding:0.3rem 0;"><span style="color:var(--text-light);">Market Value</span><span style="font-weight:700;">₹{{ loan.gold_pledge.market_value|floatformat:0 }}</span></div>
+              <div style="display:flex;justify-content:space-between;padding:0.3rem 0;border-top:1px solid #f0ebe0;"><span style="color:var(--text-light);">Pledge Value</span><span style="font-weight:700;color:var(--gold);">₹{{ loan.gold_pledge.pledge_value|floatformat:0 }}</span></div>
+            </div>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

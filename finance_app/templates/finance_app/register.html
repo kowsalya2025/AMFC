@@ -1,0 +1,191 @@
+{% extends 'finance_app/base.html' %}
+{% block title %}Register{% endblock %}
+{% block extra_css %}
+<style>
+.register-page { background: linear-gradient(135deg, var(--navy) 0%, #545454 100%); min-height: calc(100vh - 70px); padding: 3rem 0; }
+.register-card { max-width: 700px; margin: 0 auto; background: white; border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); overflow: hidden; }
+.reg-header { background: linear-gradient(135deg, var(--gold), var(--gold-light)); padding: 2rem; text-align: center; }
+.reg-header h2 { color: var(--navy); }
+.step-indicator { display: flex; justify-content: center; gap: 0.5rem; margin-top: 1rem; }
+.step-dot { width: 10px; height: 10px; border-radius: 50%; background: rgba(13,27,42,0.2); transition: var(--transition); }
+.step-dot.active { background: var(--navy); width: 24px; border-radius: 5px; }
+.form-section { display: none; }
+.form-section.active { display: block; }
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.section-subtitle { color: var(--teal); font-weight: 700; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 2px solid var(--cream); }
+.nav-btns { display: flex; justify-content: space-between; margin-top: 1.5rem; }
+.progress-reg { height: 4px; background: #f0ebe0; }
+.progress-reg-bar { height: 100%; background: linear-gradient(90deg, var(--gold), var(--teal)); transition: width 0.5s ease; }
+</style>
+{% endblock %}
+{% block content %}
+<div class="register-page">
+  <div class="container">
+    <div class="register-card animate-fade-up">
+      <div class="reg-header">
+        <div style="font-size:2rem;">📝</div>
+        <h2>Open Your Account</h2>
+        <p style="color:rgba(13,27,42,0.65);">Quick registration — takes less than 3 minutes</p>
+        <div class="step-indicator">
+          <div class="step-dot active" id="dot1"></div>
+          <div class="step-dot" id="dot2"></div>
+          <div class="step-dot" id="dot3"></div>
+        </div>
+      </div>
+      <div class="progress-reg"><div class="progress-reg-bar" id="regProgress" style="width:33%;"></div></div>
+
+      <div style="padding:2rem;">
+        <form method="post" id="regForm">
+          {% csrf_token %}
+
+          <!-- STEP 1: Account -->
+          <div class="form-section active" id="step1">
+            <div class="section-subtitle">Step 1: Account Details</div>
+            <div class="form-grid">
+              <div class="form-group">
+                <label class="form-label">First Name *</label>
+                <input type="text" name="first_name" class="form-control" required placeholder="Ramesh">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Last Name *</label>
+                <input type="text" name="last_name" class="form-control" required placeholder="Kumar">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Username *</label>
+                <input type="text" name="username" class="form-control" required placeholder="ramesh.kumar">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Email *</label>
+                <input type="email" name="email" class="form-control" required placeholder="you@email.com">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Password *</label>
+                <input type="password" name="password1" class="form-control" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Confirm Password *</label>
+                <input type="password" name="password2" class="form-control" required>
+              </div>
+            </div>
+            <div class="nav-btns">
+              <span></span>
+              <button type="button" onclick="nextStep(2)" class="btn btn-primary">Next: Personal Info →</button>
+            </div>
+          </div>
+
+          <!-- STEP 2: Personal -->
+          <div class="form-section" id="step2">
+            <div class="section-subtitle">Step 2: Personal Information</div>
+            <div class="form-grid">
+              <div class="form-group">
+                <label class="form-label">Phone Number *</label>
+                <input type="tel" name="phone" class="form-control" required placeholder="9876543210">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Date of Birth *</label>
+                <input type="date" name="date_of_birth" class="form-control" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Gender *</label>
+                <select name="gender" class="form-control" required>
+                  <option value="">Select</option>
+                  <option value="M">Male</option>
+                  <option value="F">Female</option>
+                  <option value="O">Other</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Employment Type *</label>
+                <select name="employment_type" class="form-control" required>
+                  <option value="">Select</option>
+                  <option value="SALARIED">Salaried</option>
+                  <option value="SELF_EMPLOYED">Self Employed</option>
+                  <option value="BUSINESS">Business Owner</option>
+                  <option value="RETIRED">Retired</option>
+                  <option value="OTHER">Other</option>
+                </select>
+              </div>
+              <div class="form-group" style="grid-column:1/-1;">
+                <label class="form-label">Annual Income (₹) *</label>
+                <input type="number" name="annual_income" class="form-control" required placeholder="500000">
+              </div>
+              <div class="form-group" style="grid-column:1/-1;">
+                <label class="form-label">Address *</label>
+                <input type="text" name="address_line1" class="form-control" required placeholder="House No, Street, Area">
+              </div>
+              <div class="form-group">
+                <label class="form-label">City *</label>
+                <input type="text" name="city" class="form-control" required placeholder="Chennai">
+              </div>
+              <div class="form-group">
+                <label class="form-label">State *</label>
+                <input type="text" name="state" class="form-control" required placeholder="Tamil Nadu">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Pincode *</label>
+                <input type="text" name="pincode" class="form-control" maxlength="6" required placeholder="600001">
+              </div>
+            </div>
+            <div class="nav-btns">
+              <button type="button" onclick="nextStep(1)" class="btn btn-outline">← Back</button>
+              <button type="button" onclick="nextStep(3)" class="btn btn-primary">Next: KYC Details →</button>
+            </div>
+          </div>
+
+          <!-- STEP 3: KYC -->
+          <div class="form-section" id="step3">
+            <div class="section-subtitle">Step 3: KYC Details</div>
+            <div style="background:rgba(201,168,76,0.1);border:1px solid rgba(201,168,76,0.3);border-radius:var(--radius);padding:1rem;margin-bottom:1.5rem;">
+              <i class="fas fa-shield-alt" style="color:var(--gold);"></i>
+              <strong>Secure & Encrypted</strong> — Your documents are protected by 256-bit encryption.
+            </div>
+            <div class="form-grid">
+              <div class="form-group">
+                <label class="form-label">Aadhaar Number *</label>
+                <input type="text" name="aadhaar_number" class="form-control" maxlength="12" required placeholder="XXXX XXXX XXXX">
+                <div class="form-hint">12-digit Aadhaar card number</div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">PAN Number *</label>
+                <input type="text" name="pan_number" class="form-control" maxlength="10" required placeholder="ABCDE1234F" style="text-transform:uppercase;">
+                <div class="form-hint">10-character PAN card</div>
+              </div>
+            </div>
+
+            <div style="background:var(--cream);border-radius:var(--radius);padding:1rem;margin-top:1rem;">
+              <label style="display:flex;gap:10px;align-items:flex-start;cursor:pointer;">
+                <input type="checkbox" required style="margin-top:3px;accent-color:var(--gold);">
+                <span style="font-size:0.88rem;">I agree to the <a href="#" style="color:var(--teal);">Terms & Conditions</a>, <a href="#" style="color:var(--teal);">Privacy Policy</a>, and consent to credit bureau checks.</span>
+              </label>
+            </div>
+
+            <div class="nav-btns">
+              <button type="button" onclick="nextStep(2)" class="btn btn-outline">← Back</button>
+              <button type="submit" class="btn btn-primary btn-lg">
+                <i class="fas fa-check"></i> Create Account
+              </button>
+            </div>
+          </div>
+        </form>
+
+        <div style="text-align:center;margin-top:1rem;color:var(--text-light);font-size:0.9rem;">
+          Already have an account? <a href="{% url 'login' %}" style="color:var(--teal);font-weight:600;">Login →</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+function nextStep(step) {
+  document.querySelectorAll('.form-section').forEach(s => s.classList.remove('active'));
+  document.getElementById('step' + step).classList.add('active');
+  document.querySelectorAll('.step-dot').forEach((d,i) => {
+    d.classList.toggle('active', i < step);
+  });
+  const pcts = {1:33, 2:66, 3:100};
+  document.getElementById('regProgress').style.width = pcts[step] + '%';
+}
+</script>
+{% endblock %}

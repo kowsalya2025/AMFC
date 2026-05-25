@@ -1,0 +1,81 @@
+{% extends 'finance_app/base.html' %}
+{% load finance_filters %}
+{% block title %}My Loans{% endblock %}
+
+{% block content %}
+
+<div class="page-hero" style="background: radial-gradient(circle, #2c2c2c, #3b3b3b, #212121);padding:2.5rem 0; text-align: center;">
+  <div class="container">
+    <h1 style="color:white;font-size:2rem;">My Loans</h1>
+    <p style="color:rgba(255,255,255,0.7);">Track all your loan applications and repayments</p>
+  </div>
+</div>
+
+<section class="section">
+  <div class="container">
+
+    <!-- Filter tabs -->
+    <div style="display:flex;gap:0.7rem;flex-wrap:wrap;margin-bottom:2rem;">
+      <a href="{% url 'my_loans' %}"
+         style="padding:0.5rem 1.2rem;border-radius:20px;
+                border:2px solid {% if not status %}var(--gold){% else %}#e2e8f0{% endif %};
+                background:{% if not status %}rgba(201,168,76,0.1){% else %}white{% endif %};
+                color:#2d3748;font-weight:600;font-size:0.88rem;
+                text-decoration:none;transition:var(--transition);">
+        All
+      </a>
+
+      {% for s in "ACTIVE,SUBMITTED,UNDER_REVIEW,APPROVED,CLOSED,REJECTED"|split:"," %}
+      <a href="?status={{ s }}"
+         style="padding:0.5rem 1.2rem;border-radius:20px;
+                border:2px solid {% if status == s %}var(--gold){% else %}#e2e8f0{% endif %};
+                background:{% if status == s %}rgba(201,168,76,0.1){% else %}white{% endif %};
+                color:#2d3748;font-weight:600;font-size:0.88rem;
+                text-decoration:none;transition:var(--transition);">
+        {{ s|title }}
+      </a>
+      {% endfor %}
+    </div>
+
+    <!-- Table -->
+    <div class="table-wrapper">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Ref No.</th>
+            <th>Product</th>
+            <th>Amount</th>
+            <th>EMI</th>
+            <th>Tenure</th>
+            <th>Status</th>
+            <th>Applied</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for loan in loans %}
+          <tr>
+            <td style="font-weight:700;color:var(--teal);">{{ loan.reference_number }}</td>
+            <td>{{ loan.product.icon }} {{ loan.product.name }}</td>
+            <td style="font-weight:600;color:#2d3748;">₹{{ loan.requested_amount|floatformat:0 }}</td>
+            <td style="color:#2d3748;">{% if loan.emi_amount %}₹{{ loan.emi_amount|floatformat:0 }}{% else %}—{% endif %}</td>
+            <td style="color:#2d3748;">{{ loan.tenure_months }} Mo</td>
+            <td><span class="badge badge-{{ loan.status|lower }}">{{ loan.get_status_display }}</span></td>
+            <td style="font-size:0.82rem;color:var(--text-light);">{{ loan.applied_at|date:"d M Y" }}</td>
+            <td><a href="{% url 'loan_detail' loan.pk %}" class="btn btn-teal btn-sm">View</a></td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="8" style="text-align:center;padding:3rem;color:var(--text-light);">
+              No loans found.
+              <a href="{% url 'apply_loan' %}" style="color:var(--gold);font-weight:700;">Apply Now →</a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+</section>
+{% endblock %}

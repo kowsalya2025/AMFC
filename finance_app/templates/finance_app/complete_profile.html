@@ -1,0 +1,131 @@
+{% extends 'finance_app/base.html' %}
+{% block title %}Complete Your Profile{% endblock %}
+{% block content %}
+
+<div class="container" style="max-width:650px; padding:3rem 1.5rem;">
+  <div class="card">
+    <div class="card-header">
+      <h3><i class="fas fa-user-edit"></i> Complete Your Profile</h3>
+    </div>
+    <div class="card-body">
+
+      {% if messages %}
+        {% for message in messages %}
+          <div class="alert alert-{{ message.tags }}">
+            <i class="fas fa-info-circle"></i> {{ message }}
+          </div>
+        {% endfor %}
+      {% endif %}
+
+      <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <h4 style="margin:0.5rem 0 1rem; color:var(--navy);">
+          <i class="fas fa-user"></i> Personal Details
+        </h4>
+        <hr style="margin-bottom:1rem;">
+
+        <div class="grid grid-2">
+          <div class="form-group">
+            <label class="form-label">Phone *</label>
+            <input type="text" name="phone" class="form-control" required maxlength="15" placeholder="10-digit mobile number">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Date of Birth *</label>
+            <input type="date" name="date_of_birth" class="form-control" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Gender *</label>
+          <select name="gender" class="form-control" required>
+            <option value="">-- Select Gender --</option>
+            {% for value, label in gender_choices %}
+              <option value="{{ value }}">{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <h4 style="margin:1.5rem 0 1rem; color:var(--navy);">
+          <i class="fas fa-map-marker-alt"></i> Address
+        </h4>
+        <hr style="margin-bottom:1rem;">
+
+        <div class="form-group">
+          <label class="form-label">Address Line 1 *</label>
+          <input type="text" name="address_line1" class="form-control" required placeholder="House/Flat No, Street">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Address Line 2</label>
+          <input type="text" name="address_line2" class="form-control" placeholder="Area, Landmark (optional)">
+        </div>
+
+        <div class="grid grid-3">
+          <div class="form-group">
+            <label class="form-label">City *</label>
+            <input type="text" name="city" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">State *</label>
+            <input type="text" name="state" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Pincode *</label>
+            <input type="text" name="pincode" class="form-control" required maxlength="6">
+          </div>
+        </div>
+
+        <h4 style="margin:1.5rem 0 1rem; color:var(--navy);">
+          <i class="fas fa-id-card"></i> KYC Details
+        </h4>
+        <hr style="margin-bottom:1rem;">
+
+        <div class="grid grid-2">
+          <div class="form-group">
+            <label class="form-label">Aadhaar Number *</label>
+            <input type="text" name="aadhaar_number" class="form-control" required maxlength="12" placeholder="12-digit Aadhaar">
+            <span class="form-hint">Numbers only</span>
+          </div>
+          <div class="form-group">
+            <label class="form-label">PAN Number *</label>
+            <input type="text" name="pan_number" class="form-control" required maxlength="10" placeholder="e.g. ABCDE1234F" style="text-transform:uppercase;">
+          </div>
+        </div>
+
+        <h4 style="margin:1.5rem 0 1rem; color:var(--navy);">
+          <i class="fas fa-briefcase"></i> Employment Details
+        </h4>
+        <hr style="margin-bottom:1rem;">
+
+        <div class="grid grid-2">
+          <div class="form-group">
+            <label class="form-label">Employment Type *</label>
+            <select name="employment_type" class="form-control" required>
+              <option value="">-- Select Type --</option>
+              {% for value, label in employment_choices %}
+                <option value="{{ value }}">{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Annual Income (₹)</label>
+            <input type="number" name="annual_income" class="form-control" value="0" min="0">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Employer Name</label>
+          <input type="text" name="employer_name" class="form-control" placeholder="Company / Business name (optional)">
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width:100%; margin-top:1rem;">
+          <i class="fas fa-save"></i> Save & Continue to Dashboard
+        </button>
+
+      </form>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

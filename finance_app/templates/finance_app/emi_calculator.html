@@ -1,0 +1,274 @@
+{% extends 'finance_app/base.html' %}
+{% block title %}EMI Calculator{% endblock %}
+
+{% block extra_css %}
+<style>
+.calc-hero { background: radial-gradient(circle, #2c2c2c, #3b3b3b, #212121); padding: 4rem 0 2rem; color: white; }
+.calc-hero h1 { color: white; }
+.calc-hero p { color: rgba(255,255,255,0.7); }
+
+.calc-card {
+  background: white;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+  margin-top: -2rem;
+}
+.calc-layout { display: grid; grid-template-columns: 1fr 1fr; }
+.calc-inputs { padding: 2.5rem; background: var(--cream); }
+.calc-results { padding: 2.5rem; }
+
+.range-wrap { margin-bottom: 1.8rem; }
+.range-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.7rem; }
+.range-value { font-size: 1.3rem; font-weight: 900; color: var(--gold); font-family: 'Playfair Display', serif; }
+input[type=range] {
+  -webkit-appearance: none; width: 100%;
+  height: 6px; border-radius: 3px;
+  background: #ddd; outline: none;
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 22px; height: 22px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--gold), var(--gold-light));
+  cursor: pointer; box-shadow: 0 2px 8px rgba(201,168,76,0.4);
+}
+
+.result-circle {
+  width: 180px; height: 180px; border-radius: 50%;
+  margin: 0 auto 1.5rem;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  position: relative;
+}
+.result-circle svg { position: absolute; top: 0; left: 0; transform: rotate(-90deg); }
+.result-label { color: var(--text-light); font-size: 0.82rem; }
+.result-amount { font-size: 2rem; font-weight: 900; font-family: 'Playfair Display', serif; color: var(--navy); }
+
+.breakdown-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 0.7rem 0;
+  border-bottom: 1px solid #f0ebe0;
+}
+.breakdown-dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; margin-right: 8px; }
+
+.amort-table { margin-top: 3rem; }
+.show-toggle { background: none; border: 2px solid var(--gold); color: var(--gold); padding: 0.5rem 1.2rem; border-radius: var(--radius); cursor: pointer; font-weight: 600; transition: var(--transition); }
+.show-toggle:hover { background: var(--gold); color: var(--navy); }
+
+@media (max-width: 768px) { .calc-layout { grid-template-columns: 1fr; } }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="calc-hero">
+  <div class="container text-center animate-fade-up">
+    <h1>EMI Calculator</h1>
+    <p>Plan your loan repayment with our advanced EMI calculator</p>
+  </div>
+</div>
+
+<div class="container" style="padding-bottom:4rem;">
+  <div class="calc-card">
+    <div class="calc-layout">
+
+      <!-- INPUTS -->
+      <div class="calc-inputs">
+        <h3 style="margin-bottom:2rem;color:var(--navy);">Loan Details</h3>
+
+        <div class="range-wrap">
+          <div class="range-header">
+            <label style="font-weight:600;">Loan Amount</label>
+            <span class="range-value" id="dispAmount">₹1,00,000</span>
+          </div>
+          <input type="range" id="rAmount" min="10000" max="5000000" step="5000" value="100000" oninput="calcEMI()">
+          <div style="display:flex;justify-content:space-between;font-size:0.78rem;color:var(--text-light);margin-top:4px;">
+            <span>₹10K</span><span>₹50L</span>
+          </div>
+        </div>
+
+        <div class="range-wrap">
+          <div class="range-header">
+            <label style="font-weight:600;">Interest Rate (p.a.)</label>
+            <span class="range-value" id="dispRate">12%</span>
+          </div>
+          <input type="range" id="rRate" min="6" max="36" step="0.5" value="12" oninput="calcEMI()">
+          <div style="display:flex;justify-content:space-between;font-size:0.78rem;color:var(--text-light);margin-top:4px;">
+            <span>6%</span><span>36%</span>
+          </div>
+        </div>
+
+        <div class="range-wrap">
+          <div class="range-header">
+            <label style="font-weight:600;">Loan Tenure</label>
+            <span class="range-value" id="dispTenure">24 Mo</span>
+          </div>
+          <input type="range" id="rTenure" min="3" max="240" step="1" value="24" oninput="calcEMI()">
+          <div style="display:flex;justify-content:space-between;font-size:0.78rem;color:var(--text-light);margin-top:4px;">
+            <span>3 Mo</span><span>20 Yrs</span>
+          </div>
+        </div>
+
+        <div style="margin-top:2rem;padding:1.2rem;background:var(--navy);border-radius:var(--radius);color:white;">
+          <div style="display:flex;justify-content:space-between;margin-bottom:0.5rem;">
+            <span style="color:rgba(255,255,255,0.6);">Processing Fee (1%)</span>
+            <span id="dispFee" style="color:var(--gold);font-weight:700;">₹1,000</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;">
+            <span style="color:rgba(255,255,255,0.6);">Net Amount Received</span>
+            <span id="dispNet" style="color:var(--gold);font-weight:700;">₹99,000</span>
+          </div>
+        </div>
+
+        {% if user.is_authenticated %}
+        <a href="{% url 'apply_loan' %}" class="btn btn-primary" style="width:100%;justify-content:center;margin-top:1.5rem;">
+          <i class="fas fa-paper-plane"></i> Apply for This Loan
+        </a>
+        {% else %}
+        <a href="{% url 'register' %}" class="btn btn-primary" style="width:100%;justify-content:center;margin-top:1.5rem;">
+          <i class="fas fa-user-plus"></i> Register to Apply
+        </a>
+        {% endif %}
+      </div>
+
+      <!-- RESULTS -->
+      <div class="calc-results">
+        <h3 style="text-align:center;margin-bottom:1.5rem;color:var(--navy);">Your EMI Summary</h3>
+
+        <!-- Donut chart simulation -->
+        <div class="result-circle">
+          <svg width="180" height="180" viewBox="0 0 180 180">
+            <circle cx="90" cy="90" r="75" fill="none" stroke="#f0ebe0" stroke-width="18"/>
+            <circle id="svgPrincipal" cx="90" cy="90" r="75" fill="none" stroke="var(--teal)" stroke-width="18"
+              stroke-dasharray="471.2" stroke-dashoffset="117.8" stroke-linecap="round"/>
+            <circle id="svgInterest" cx="90" cy="90" r="75" fill="none" stroke="var(--gold)" stroke-width="18"
+              stroke-dasharray="471.2" stroke-dashoffset="353.4" stroke-linecap="round"/>
+          </svg>
+          <div style="z-index:1;text-align:center;">
+            <div class="result-label">Monthly EMI</div>
+            <div class="result-amount" id="emiResult">₹4,727</div>
+          </div>
+        </div>
+
+        <div>
+          <div class="breakdown-row">
+            <span><span class="breakdown-dot" style="background:var(--navy);"></span>Principal Amount</span>
+            <span id="bdPrincipal" style="font-weight:700;">₹1,00,000</span>
+          </div>
+          <div class="breakdown-row">
+            <span><span class="breakdown-dot" style="background:var(--gold);"></span>Total Interest</span>
+            <span id="bdInterest" style="font-weight:700;color:var(--gold);">₹13,448</span>
+          </div>
+          <div class="breakdown-row" style="border-bottom:none;">
+            <span><span class="breakdown-dot" style="background:var(--teal);"></span>Total Payment</span>
+            <span id="bdTotal" style="font-weight:700;font-size:1.1rem;color:var(--teal);">₹1,13,448</span>
+          </div>
+        </div>
+
+        <!-- Interest % bar -->
+        <div style="margin-top:1.5rem;">
+          <div style="display:flex;justify-content:space-between;font-size:0.82rem;margin-bottom:4px;">
+            <span>Principal</span><span>Interest</span>
+          </div>
+          <div class="progress" style="height:12px;">
+            <div class="progress-bar" id="principalBar" style="width:90%;background:linear-gradient(90deg,var(--teal),var(--navy));"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- AMORTIZATION TABLE -->
+    <div class="amort-table" style="padding:2rem;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+        <h3>Amortization Schedule</h3>
+        <button class="show-toggle" onclick="toggleTable()">Show Full Schedule</button>
+      </div>
+      <div id="amortBody" style="display:none;">
+        <div class="table-wrapper">
+          <table class="table" id="amortTable">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>EMI Amount</th>
+                <th>Principal</th>
+                <th>Interest</th>
+                <th>Balance</th>
+              </tr>
+            </thead>
+            <tbody id="amortRows"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function fmt(n) { return '₹' + Math.round(n).toLocaleString('en-IN'); }
+
+function calcEMI() {
+  const P = parseFloat(document.getElementById('rAmount').value);
+  const r = parseFloat(document.getElementById('rRate').value) / 100 / 12;
+  const n = parseInt(document.getElementById('rTenure').value);
+
+  const emi = P * r * Math.pow(1+r,n) / (Math.pow(1+r,n) - 1);
+  const total = emi * n;
+  const interest = total - P;
+  const fee = P * 0.01;
+  const net = P - fee;
+  const pPct = (P / total) * 100;
+
+  document.getElementById('dispAmount').textContent = fmt(P);
+  document.getElementById('dispRate').textContent = parseFloat(document.getElementById('rRate').value) + '%';
+  document.getElementById('dispTenure').textContent = n < 12 ? n + ' Mo' : (n/12).toFixed(1) + ' Yr';
+  document.getElementById('emiResult').textContent = fmt(emi);
+  document.getElementById('bdPrincipal').textContent = fmt(P);
+  document.getElementById('bdInterest').textContent = fmt(interest);
+  document.getElementById('bdTotal').textContent = fmt(total);
+  document.getElementById('dispFee').textContent = fmt(fee);
+  document.getElementById('dispNet').textContent = fmt(net);
+  document.getElementById('principalBar').style.width = pPct + '%';
+
+  // Amortization
+  const rows = document.getElementById('amortRows');
+  rows.innerHTML = '';
+  let bal = P;
+  for (let i = 1; i <= n; i++) {
+    const intPart = bal * r;
+    const priPart = emi - intPart;
+    bal -= priPart;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td style="font-weight:600;">${i}</td>
+      <td style="color:var(--navy);font-weight:600;">${fmt(emi)}</td>
+      <td style="color:var(--teal);">${fmt(priPart)}</td>
+      <td style="color:var(--gold);">${fmt(intPart)}</td>
+      <td>${fmt(Math.max(bal, 0))}</td>
+    `;
+    rows.appendChild(tr);
+  }
+
+  // SVG donut
+  const circumference = 2 * Math.PI * 75;
+  const interestOffset = circumference - (interest / total) * circumference;
+  const principalOffset = circumference - (P / total) * circumference;
+  document.getElementById('svgInterest').setAttribute('stroke-dashoffset', interestOffset);
+  document.getElementById('svgPrincipal').setAttribute('stroke-dashoffset', principalOffset);
+}
+
+function toggleTable() {
+  const body = document.getElementById('amortBody');
+  const btn = document.querySelector('.show-toggle');
+  if (body.style.display === 'none') {
+    body.style.display = 'block';
+    btn.textContent = 'Hide Schedule';
+  } else {
+    body.style.display = 'none';
+    btn.textContent = 'Show Full Schedule';
+  }
+}
+
+calcEMI();
+</script>
+{% endblock %}

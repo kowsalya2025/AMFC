@@ -1,0 +1,173 @@
+{% extends 'finance_app/base.html' %}
+{% block title %}Apply for Loan{% endblock %}
+{% block extra_css %}
+<style>
+.apply-layout { display: grid; grid-template-columns: 2fr 1fr; gap: 2rem; }
+.apply-card { background: white; border-radius: var(--radius-lg); box-shadow: var(--shadow); padding: 2rem; }
+.product-selector { display: grid; grid-template-columns: repeat(3,1fr); gap: 0.7rem; margin-bottom: 1.5rem; }
+.prod-choice {
+  border: 2px solid #e2e8f0; border-radius: var(--radius); padding: 1rem; text-align: center;
+  cursor: pointer; transition: var(--transition);
+}
+.prod-choice:hover { border-color: var(--gold); }
+.prod-choice.selected { border-color: var(--gold); background: rgba(201,168,76,0.08); }
+.prod-choice input { display: none; }
+.prod-choice .icon { font-size: 1.8rem; display: block; }
+.prod-choice .name { font-size: 0.82rem; font-weight: 600; color: var(--navy); margin-top: 4px; }
+.prod-choice .rate { font-size: 0.75rem; color: var(--teal); }
+
+.loan-summary-box { background: var(--navy); border-radius: var(--radius-lg); padding: 1.5rem; color: white; margin-bottom: 1.5rem; }
+.ls-row { display: flex; justify-content: space-between; padding: 0.4rem 0; border-bottom: 1px solid rgba(255,255,255,0.08); font-size:0.88rem; }
+.ls-row:last-child { border: none; font-size: 1rem; font-weight: 700; color: var(--gold); }
+
+.step-tracker { display: flex; gap: 0; }
+.st-step { flex: 1; text-align: center; position: relative; }
+.st-step::after { content:''; position:absolute; top:14px; left:50%; right:-50%; height:2px; background:#e2e8f0; z-index:0; }
+.st-step:last-child::after { display:none; }
+.st-num { width: 30px; height: 30px; border-radius: 50%; background: #e2e8f0; color: var(--text-light); font-size: 0.8rem; font-weight: 700; display: flex; align-items: center; justify-content: center; margin: 0 auto 4px; position: relative; z-index: 1; }
+.st-step.done .st-num { background: var(--gold); color: var(--navy); }
+.st-step.active .st-num { background: var(--navy); color: white; }
+.st-label { font-size: 0.72rem; color: var(--text-light); }
+@media (max-width: 900px) { .apply-layout { grid-template-columns: 1fr; } }
+</style>
+{% endblock %}
+{% block content %}
+<div class="page-hero" style="background:linear-gradient(135deg,var(--navy),var(--teal));padding:2.5rem 0;">
+  <div class="container">
+    <h1 style="color:white;font-size:2rem;">Apply for a Loan</h1>
+    <p style="color:rgba(255,255,255,0.7);">Quick approval. Minimal documentation. Direct disbursal.</p>
+    <div class="step-tracker" style="max-width:500px;margin-top:1.5rem;">
+      <div class="st-step done">
+        <div class="st-num">✓</div><div class="st-label">Register</div>
+      </div>
+      <div class="st-step done">
+        <div class="st-num">✓</div><div class="st-label">KYC</div>
+      </div>
+      <div class="st-step active">
+        <div class="st-num">3</div><div class="st-label">Apply</div>
+      </div>
+      <div class="st-step">
+        <div class="st-num">4</div><div class="st-label">Approval</div>
+      </div>
+      <div class="st-step">
+        <div class="st-num">5</div><div class="st-label">Disbursal</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<section class="section">
+  <div class="container">
+    <div class="apply-layout">
+      <div>
+        <div class="apply-card">
+          <h3 style="margin-bottom:1.5rem;color:var(--navy);">Select Loan Product</h3>
+          <form method="post" id="applyForm">
+            {% csrf_token %}
+            <div class="product-selector">
+              {% for p in products %}
+              <label class="prod-choice {% if product and product.pk == p.pk %}selected{% endif %}" onclick="updateSummary({{ p.base_interest_rate }}, {{ p.min_amount }}, {{ p.max_amount }}, {{ p.min_tenure_months }}, {{ p.max_tenure_months }})">
+                <input type="radio" name="product" value="{{ p.pk }}" {% if product and product.pk == p.pk %}checked{% endif %}>
+                <span class="icon">{{ p.icon }}</span>
+                <span class="name">{{ p.name|truncatechars:18 }}</span>
+                <span class="rate">{{ p.base_interest_rate }}%</span>
+              </label>
+              {% endfor %}
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+              <div class="form-group">
+                <label class="form-label">Loan Amount (₹) *</label>
+                <input type="number" name="requested_amount" class="form-control" required min="10000" step="1000" oninput="calcLiveSummary()" id="applyAmount" value="{{ request.POST.requested_amount|default:'100000' }}">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Tenure (Months) *</label>
+                <input type="number" name="tenure_months" class="form-control" required min="3" max="240" oninput="calcLiveSummary()" id="applyTenure" value="{{ request.POST.tenure_months|default:'24' }}">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Interest Rate (%) *</label>
+                <input type="number" name="interest_rate" class="form-control" step="0.01" required id="applyRate" value="{{ product.base_interest_rate|default:'12' }}">
+                <div class="form-hint">Auto-filled based on product</div>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Loan Purpose *</label>
+              <textarea name="loan_purpose" class="form-control" rows="3" required placeholder="Briefly describe why you need this loan..."></textarea>
+            </div>
+
+            <div style="background:rgba(201,168,76,0.1);border-radius:var(--radius);padding:1rem;margin-bottom:1.5rem;">
+              <label style="display:flex;gap:10px;align-items:flex-start;cursor:pointer;">
+                <input type="checkbox" required style="margin-top:3px;accent-color:var(--gold);">
+                <span style="font-size:0.88rem;">I confirm all details are accurate. I authorize FinanceHub to verify my credit information as per RBI guidelines.</span>
+              </label>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-lg" style="width:100%;justify-content:center;">
+              <i class="fas fa-paper-plane"></i> Submit Application
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <div>
+        <div class="loan-summary-box">
+          <div style="color:var(--gold);font-size:0.75rem;text-transform:uppercase;letter-spacing:2px;margin-bottom:1rem;">Live Summary</div>
+          <div class="ls-row"><span>Principal</span><span id="ls-principal">₹1,00,000</span></div>
+          <div class="ls-row"><span>Rate p.a.</span><span id="ls-rate">12%</span></div>
+          <div class="ls-row"><span>Tenure</span><span id="ls-tenure">24 Mo</span></div>
+          <div class="ls-row"><span>Processing Fee</span><span id="ls-fee">₹1,000</span></div>
+          <div class="ls-row"><span>Total Interest</span><span id="ls-interest">₹13,448</span></div>
+          <div class="ls-row"><span>Monthly EMI</span><span id="ls-emi">₹4,727</span></div>
+        </div>
+
+        <div class="apply-card">
+          <h4 style="margin-bottom:1rem;">Documents Needed</h4>
+          {% if product %}
+          {% for doc in product.documents_required %}
+          <div style="display:flex;align-items:center;gap:8px;padding:0.4rem 0;font-size:0.88rem;">
+            <i class="fas fa-check-circle" style="color:var(--gold);"></i> {{ doc }}
+          </div>
+          {% endfor %}
+          {% else %}
+          <div style="font-size:0.88rem;color:var(--text-mid);">
+            <div style="display:flex;align-items:center;gap:8px;padding:0.3rem 0;"><i class="fas fa-id-card" style="color:var(--gold);"></i> Aadhaar Card</div>
+            <div style="display:flex;align-items:center;gap:8px;padding:0.3rem 0;"><i class="fas fa-address-card" style="color:var(--gold);"></i> PAN Card</div>
+            <div style="display:flex;align-items:center;gap:8px;padding:0.3rem 0;"><i class="fas fa-file-invoice" style="color:var(--gold);"></i> Income Proof</div>
+            <div style="display:flex;align-items:center;gap:8px;padding:0.3rem 0;"><i class="fas fa-university" style="color:var(--gold);"></i> Bank Statement (3 months)</div>
+          </div>
+          {% endif %}
+        </div>
+
+        <div class="apply-card mt-2" style="margin-top:1rem;background:linear-gradient(135deg,var(--teal),var(--teal-light));color:white;">
+          <i class="fas fa-headset" style="font-size:1.5rem;margin-bottom:0.5rem;display:block;"></i>
+          <strong>Need Help?</strong>
+          <p style="font-size:0.85rem;margin-top:0.3rem;opacity:0.85;">Call our loan experts: <strong>1800-XXX-XXXX</strong> (Toll Free)</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+{% block extra_js %}
+<script>
+function fmt(n) { return '₹' + Math.round(n).toLocaleString('en-IN'); }
+function calcLiveSummary() {
+  const P = parseFloat(document.getElementById('applyAmount').value) || 100000;
+  const n = parseInt(document.getElementById('applyTenure').value) || 24;
+  const rate = parseFloat(document.getElementById('applyRate').value) || 12;
+  const r = rate / 100 / 12;
+  const emi = P * r * Math.pow(1+r,n) / (Math.pow(1+r,n) - 1);
+  document.getElementById('ls-principal').textContent = fmt(P);
+  document.getElementById('ls-rate').textContent = rate + '%';
+  document.getElementById('ls-tenure').textContent = n + ' Mo';
+  document.getElementById('ls-fee').textContent = fmt(P * 0.01);
+  document.getElementById('ls-interest').textContent = fmt(emi * n - P);
+  document.getElementById('ls-emi').textContent = fmt(emi);
+}
+function updateSummary(rate, min, max, minT, maxT) {
+  document.getElementById('applyRate').value = rate;
+  calcLiveSummary();
+}
+calcLiveSummary();
+</script>
+{% endblock %}
