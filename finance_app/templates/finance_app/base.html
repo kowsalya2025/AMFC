@@ -60,9 +60,9 @@
     .navbar {
       position: sticky; top: 0; z-index: 1000;
       background: rgb(223, 221, 221);
-      padding: 0 2rem;
+      padding: 0.3rem 2rem;
       display: flex; align-items: center; justify-content: space-between;
-      height: 70px;
+      min-height: 75px;
       box-shadow: 0 2px 20px rgba(0,0,0,0.3);
     }
     .navbar-brand {
@@ -79,11 +79,10 @@
 
 /* ADD this below it */
 .brand-icon img {
-  width: 150px;
+  width: 170px;
   height: auto;
   object-fit: contain;
   border-radius: 10px;
-  
 }
     .brand-sub { font-size: 0.6rem; color: var(--gold); letter-spacing: 3px; text-transform: uppercase; display: block; }
 
@@ -437,6 +436,7 @@
 
   <ul class="nav-links">
     <li><a href="{% url 'home' %}"><i class="fas fa-home"></i> Home</a></li>
+    <li><a href="{% url 'about' %}"><i class="fas fa-info-circle"></i> About</a></li>
     <li><a href="{% url 'loan_products' %}"><i class="fas fa-hand-holding-usd"></i> Loans</a></li>
     <li><a href="{% url 'emi_calculator' %}"><i class="fas fa-calculator"></i> EMI Calc</a></li>
     <li><a href="{% url 'gold_loan' %}"><i class="fas fa-ring"></i> Gold Loan</a></li>
@@ -497,6 +497,7 @@
       </div>
       <div>
         <h4>Quick Links</h4>
+        <a href="{% url 'about' %}">About Us</a>
         <a href="{% url 'emi_calculator' %}">EMI Calculator</a>
         <a href="{% url 'loan_products' %}">Apply Online</a>
         <a href="#">Track Application</a>
