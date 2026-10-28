@@ -59,7 +59,7 @@
     /* ── NAVBAR ── */
     .navbar {
       position: sticky; top: 0; z-index: 1000;
-      background: rgb(223, 221, 221);
+      background: white;
       padding: 0.3rem 2rem;
       display: flex; align-items: center; justify-content: space-between;
       min-height: 75px;
@@ -356,10 +356,56 @@
    
 /* REPLACE the existing @media (max-width: 768px) block — add footer fixes inside */
 @media (max-width: 768px) {
-  .hamburger { display: block; }
-  .nav-links { display: none; flex-direction: column; position: absolute; top: 70px; left: 0; right: 0; background: var(--navy); padding: 1rem; gap: 0.3rem; }
+  .hamburger {
+    display: block;
+    color: var(--navy);
+  }
+  .nav-links {
+    display: none;
+    flex-direction: column;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: var(--navy);
+    padding: 1.2rem;
+    gap: 0.4rem;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+    border-top: 2px solid #FF7531;
+  }
   .nav-links.open { display: flex; }
-  .nav-links a { padding: 0.7rem 1rem; }
+  .nav-links a {
+    color: #ffffff !important;
+    padding: 0.75rem 1rem;
+    font-size: 1.05rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-radius: 8px;
+    transition: var(--transition);
+  }
+  .nav-links a i {
+    color: #FF7531;
+    width: 22px;
+    text-align: center;
+    font-size: 1.1rem;
+  }
+  .nav-links a:hover,
+  .nav-links a.active {
+    color: #FF7531 !important;
+    background: rgba(255, 255, 255, 0.08);
+  }
+  .nav-links a.btn-nav-cta {
+    background: #FF7531 !important;
+    color: var(--navy) !important;
+    font-weight: 700 !important;
+    justify-content: center;
+    margin-top: 0.5rem;
+  }
+  .nav-links a.btn-nav-cta i {
+    color: var(--navy);
+  }
 
   /* Footer fixes */
   .footer-grid { grid-template-columns: 1fr 1fr; }
